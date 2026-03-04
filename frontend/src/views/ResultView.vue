@@ -1,10 +1,474 @@
 <template>
-  <div>
-    <h2>Result Page</h2>
-    <p>这里以后显示最终排名</p>
+  <div class="result-view">
+    <!-- 结果标题 -->
+    <div class="result-header">
+      <h1 class="result-title">{{ $t('result.title') }}</h1>
+      <p class="result-subtitle">{{ $t('result.subtitle') }}</p>
+    </div>
 
-    <router-link to="/">
-      <button>返回对战</button>
-    </router-link>
+    <!-- 排名展示区域 -->
+    <div class="ranking-section" ref="rankingContainer">
+      <div class="ranking-header">
+        <span class="rank-label">#</span>
+        <span class="member-label">{{ $t('result.member') }}</span>
+      </div>
+      <div class="ranking-list">
+        <div 
+          v-for="(member, index) in rankingList" 
+          :key="member.id"
+          class="rank-item"
+          :class="{ 'top3': index < 3 }"
+          :style="{ animationDelay: index * 0.05 + 's' }"
+        >
+          <span class="rank-number" :class="'rank-' + (index + 1)">{{ index + 1 }}</span>
+          <div class="member-info">
+            <img :src="member.img" :alt="member.name" class="member-avatar" />
+            <div class="member-details">
+              <span class="member-name">{{ member.name }}</span>
+              <span class="member-gen">{{ member.generation }}</span>
+            </div>
+          </div>
+          <div v-if="index < 3" class="rank-medal">{{ ['🥇', '🥈', '🥉'][index] }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 阵型切换 -->
+    <div class="formation-section">
+      <h3 class="section-title">{{ $t('result.formation.title') }}</h3>
+      <div class="formation-tabs">
+        <button 
+          v-for="tab in formationTabs" 
+          :key="tab.key"
+          :class="['tab-btn', { active: activeTab === tab.key }]"
+          @click="activeTab = tab.key"
+        >
+          {{ tab.label }}
+        </button>
+      </div>
+      <div class="formation-preview">
+        <div class="formation-grid" :class="'formation-' + activeTab">
+          <div 
+            v-for="n in formationCount" 
+            :key="n"
+            class="formation-slot"
+            :class="{ filled: n <= formationMembers.length }"
+          >
+            <img 
+              v-if="n <= formationMembers.length" 
+              :src="formationMembers[n-1]?.img" 
+              :alt="formationMembers[n-1]?.name"
+            />
+            <span v-else class="slot-number">{{ n }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分享操作 -->
+    <div class="share-section">
+      <h3 class="section-title">{{ $t('result.share.title') }}</h3>
+      <div class="share-buttons">
+        <button class="share-btn primary" @click="downloadImage">
+          <span class="btn-icon">💾</span>
+          <span>{{ $t('result.share.download') }}</span>
+        </button>
+        <button class="share-btn secondary" @click="copyLink">
+          <span class="btn-icon">🔗</span>
+          <span>{{ $t('result.share.copy') }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 重新开始 -->
+    <div class="restart-section">
+      <router-link to="/battle" class="restart-btn">
+        <span class="btn-icon">🔄</span>
+        <span>{{ $t('result.restart') }}</span>
+      </router-link>
+    </div>
   </div>
 </template>
+
+<script>
+export default {
+  name: 'ResultView',
+  data() {
+    return {
+      activeTab: 'senbatsu',
+      formationTabs: [
+        { key: 'senbatsu', label: this.$t('result.formation.senbatsu') },
+        { key: 'under', label: this.$t('result.formation.under') },
+        { key: 'all', label: this.$t('result.formation.all') }
+      ],
+      rankingList: Array.from({ length: 20 }, (_, i) => ({
+        id: i + 1,
+        name: `Member ${i + 1}`,
+        generation: `${Math.floor(i / 5) + 1}期生`,
+        img: `https://via.placeholder.com/60x60/7e1083/ffffff?text=${i + 1}`
+      }))
+    }
+  },
+  computed: {
+    formationCount() {
+      const counts = { senbatsu: 16, under: 21, all: 46 }
+      return counts[this.activeTab] || 16
+    },
+    formationMembers() {
+      return this.rankingList.slice(0, this.formationCount)
+    }
+  },
+  methods: {
+    downloadImage() {
+      // 使用 html2canvas 生成图片
+      console.log('Downloading image...')
+    },
+    copyLink() {
+      navigator.clipboard.writeText(window.location.href)
+        .then(() => alert('链接已复制！'))
+        .catch(() => alert('复制失败'))
+    }
+  }
+}
+</script>
+
+<style scoped>
+.result-view {
+  min-height: calc(100vh - 70px);
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* 结果标题 */
+.result-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.result-title {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.result-subtitle {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* 排名区域 */
+.ranking-section {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ranking-header {
+  display: flex;
+  padding: 0 1rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.rank-label {
+  width: 50px;
+}
+
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rank-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  animation: slideIn 0.5s ease forwards;
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.rank-item:hover {
+  background: rgba(126, 16, 131, 0.1);
+  transform: translateX(5px);
+}
+
+.rank-item.top3 {
+  background: rgba(126, 16, 131, 0.08);
+  border: 1px solid rgba(126, 16, 131, 0.2);
+}
+
+.rank-number {
+  width: 50px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.rank-number.rank-1 {
+  color: #FFD700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.rank-number.rank-2 {
+  color: #C0C0C0;
+}
+
+.rank-number.rank-3 {
+  color: #CD7F32;
+}
+
+.member-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.member-avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(126, 16, 131, 0.3);
+}
+
+.member-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.member-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.member-gen {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.rank-medal {
+  font-size: 1.5rem;
+}
+
+/* 阵型区域 */
+.formation-section {
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 1.2rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.formation-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tab-btn {
+  padding: 0.6rem 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.9rem;
+}
+
+.tab-btn:hover,
+.tab-btn.active {
+  background: linear-gradient(135deg, #7e1083 0%, #9c27b0 100%);
+  border-color: transparent;
+  color: #fff;
+}
+
+.formation-preview {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.formation-grid {
+  display: grid;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.formation-senbatsu {
+  grid-template-columns: repeat(4, 1fr);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.formation-under {
+  grid-template-columns: repeat(5, 1fr);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.formation-all {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.formation-slot {
+  aspect-ratio: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.formation-slot.filled {
+  border-color: rgba(126, 16, 131, 0.3);
+}
+
+.formation-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.slot-number {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* 分享区域 */
+.share-section {
+  margin-bottom: 2rem;
+}
+
+.share-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.share-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 2rem;
+  border-radius: 50px;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.share-btn.primary {
+  background: linear-gradient(135deg, #7e1083 0%, #9c27b0 100%);
+  color: #fff;
+}
+
+.share-btn.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.share-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(126, 16, 131, 0.3);
+}
+
+/* 重新开始 */
+.restart-section {
+  text-align: center;
+}
+
+.restart-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.restart-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .result-view {
+    padding: 1rem;
+  }
+
+  .result-title {
+    font-size: 1.5rem;
+  }
+
+  .ranking-section {
+    padding: 1rem;
+  }
+
+  .member-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .formation-senbatsu {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .formation-under {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .formation-all {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .share-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .share-btn {
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+  }
+}
+</style>

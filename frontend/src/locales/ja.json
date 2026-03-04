@@ -1,0 +1,59 @@
+{
+  "app": {
+    "title": "N46Sorter | 乃木坂46ソート",
+    "description": "乃木坂46現役・卒業メンバー対応。2択を選ぶだけで推し順位を作成し、選抜フォーメーションも再現。結果は高画質のシェア画像として保存可能。"
+  },
+  "nav": {
+    "home": "ホーム",
+    "battle": "ソート開始",
+    "result": "結果",
+    "language": "言語"
+  },
+  "home": {
+    "welcome": "ようこそ",
+    "subtitle": "乃木坂46 推しメンソート",
+    "description": "簡単な2択で、あなただけの乃木坂46メンバーランキングを作成",
+    "startButton": "ソート開始",
+    "features": {
+      "title": "機能",
+      "allMembers": "現役・卒業メンバー全対応",
+      "formation": "選抜フォーメーション再現",
+      "share": "高画質画像でシェア"
+    }
+  },
+  "battle": {
+    "title": "好きな方を選んでください",
+    "round": "第 {current} 回 / 全 {total} 回",
+    "skip": "スキップ",
+    "draw": "同点",
+    "progress": "進捗",
+    "select": "クリックして選択",
+    "left": "左",
+    "right": "右",
+    "drawKey": "スペース"
+  },
+  "result": {
+    "title": "あなたのランキング結果",
+    "subtitle": "乃木坂46 推し順位",
+    "member": "メンバー",
+    "formation": {
+      "title": "選抜フォーメーション",
+      "senbatsu": "選抜 (16人)",
+      "under": "アンダー",
+      "all": "全員"
+    },
+    "share": {
+      "title": "シェア",
+      "download": "画像をダウンロード",
+      "copy": "リンクをコピー"
+    },
+    "restart": "もう一度ソート"
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "confirm": "確認",
+    "cancel": "キャンセル",
+    "back": "戻る",
+    "next": "次へ"
+  }
+}

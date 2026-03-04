@@ -1,0 +1,59 @@
+{
+  "app": {
+    "title": "N46Sorter | Nogizaka46 Sorter",
+    "description": "Supports both active and graduated members of Nogizaka46. Create your favorite member ranking by simple choices, and reproduce the senbatsu formation. Results can be saved as high-quality shareable images."
+  },
+  "nav": {
+    "home": "Home",
+    "battle": "Start Sorting",
+    "result": "Result",
+    "language": "Language"
+  },
+  "home": {
+    "welcome": "Welcome",
+    "subtitle": "Nogizaka46 Member Sorter",
+    "description": "Create your own Nogizaka46 member ranking through simple choices",
+    "startButton": "Start Sorting",
+    "features": {
+      "title": "Features",
+      "allMembers": "All Active & Graduated Members",
+      "formation": "Senbatsu Formation Reproduction",
+      "share": "High-Quality Image Sharing"
+    }
+  },
+  "battle": {
+    "title": "Choose your favorite",
+    "round": "Round {current} / {total}",
+    "skip": "Skip",
+    "draw": "Draw",
+    "progress": "Progress",
+    "select": "Click to select",
+    "left": "Left",
+    "right": "Right",
+    "drawKey": "Space"
+  },
+  "result": {
+    "title": "Your Ranking Result",
+    "subtitle": "Nogizaka46 Member Ranking",
+    "member": "Member",
+    "formation": {
+      "title": "Formation",
+      "senbatsu": "Senbatsu (16)",
+      "under": "Under",
+      "all": "All Members"
+    },
+    "share": {
+      "title": "Share",
+      "download": "Download Image",
+      "copy": "Copy Link"
+    },
+    "restart": "Sort Again"
+  },
+  "common": {
+    "loading": "Loading...",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next"
+  }
+}

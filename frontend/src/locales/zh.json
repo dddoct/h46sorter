@@ -1,0 +1,59 @@
+{
+  "app": {
+    "title": "N46Sorter | 乃木坂46排名",
+    "description": "乃木坂46现役・毕业成员对应。只需二选一即可创建你的推顺排名，还能再现选拔阵型。结果可以保存为高画质的分享图片。"
+  },
+  "nav": {
+    "home": "首页",
+    "battle": "开始排序",
+    "result": "结果",
+    "language": "语言"
+  },
+  "home": {
+    "welcome": "欢迎",
+    "subtitle": "乃木坂46 推顺排名生成器",
+    "description": "通过简单的二选一，创建属于你的乃木坂46成员排名",
+    "startButton": "开始排序",
+    "features": {
+      "title": "功能特色",
+      "allMembers": "现役・毕业成员全对应",
+      "formation": "选拔阵型再现",
+      "share": "高画质图片分享"
+    }
+  },
+  "battle": {
+    "title": "选择你更喜欢的一位",
+    "round": "第 {current} 轮 / 共 {total} 轮",
+    "skip": "跳过",
+    "draw": "平局",
+    "progress": "进度",
+    "select": "点击选择",
+    "left": "左",
+    "right": "右",
+    "drawKey": "空格"
+  },
+  "result": {
+    "title": "你的排名结果",
+    "subtitle": "乃木坂46 推顺排名",
+    "member": "成员",
+    "formation": {
+      "title": "选拔阵型",
+      "senbatsu": "选拔 (16人)",
+      "under": "Under",
+      "all": "全员"
+    },
+    "share": {
+      "title": "分享",
+      "download": "下载图片",
+      "copy": "复制链接"
+    },
+    "restart": "重新排序"
+  },
+  "common": {
+    "loading": "加载中...",
+    "confirm": "确认",
+    "cancel": "取消",
+    "back": "返回",
+    "next": "下一步"
+  }
+}
