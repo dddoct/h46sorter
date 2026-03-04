@@ -30,12 +30,21 @@
     "select": "点击选择",
     "left": "左",
     "right": "右",
-    "drawKey": "空格"
+    "drawKey": "空格",
+    "loading": "加载中...",
+    "complete": "排序完成！",
+    "viewResult": "查看结果",
+    "undo": "撤销"
   },
   "result": {
     "title": "你的排名结果",
     "subtitle": "乃木坂46 推顺排名",
     "member": "成员",
+    "noResult": "暂无排名结果",
+    "pleaseComplete": "请先完成排序",
+    "startSorting": "开始排序",
+    "linkCopied": "链接已复制！",
+    "copyFailed": "复制失败",
     "formation": {
       "title": "选拔阵型",
       "senbatsu": "选拔 (16人)",

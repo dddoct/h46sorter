@@ -1,132 +1,189 @@
 <template>
   <div class="result-view">
-    <!-- 结果标题 -->
-    <div class="result-header">
-      <h1 class="result-title">{{ $t('result.title') }}</h1>
-      <p class="result-subtitle">{{ $t('result.subtitle') }}</p>
+    <!-- 加载状态 -->
+    <div v-if="!isReady" class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>{{ $t('common.loading') }}</p>
     </div>
 
-    <!-- 排名展示区域 -->
-    <div class="ranking-section" ref="rankingContainer">
-      <div class="ranking-header">
-        <span class="rank-label">#</span>
-        <span class="member-label">{{ $t('result.member') }}</span>
-      </div>
-      <div class="ranking-list">
-        <div 
-          v-for="(member, index) in rankingList" 
-          :key="member.id"
-          class="rank-item"
-          :class="{ 'top3': index < 3 }"
-          :style="{ animationDelay: index * 0.05 + 's' }"
-        >
-          <span class="rank-number" :class="'rank-' + (index + 1)">{{ index + 1 }}</span>
-          <div class="member-info">
-            <img :src="member.img" :alt="member.name" class="member-avatar" />
-            <div class="member-details">
-              <span class="member-name">{{ member.name }}</span>
-              <span class="member-gen">{{ member.generation }}</span>
-            </div>
-          </div>
-          <div v-if="index < 3" class="rank-medal">{{ ['🥇', '🥈', '🥉'][index] }}</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 阵型切换 -->
-    <div class="formation-section">
-      <h3 class="section-title">{{ $t('result.formation.title') }}</h3>
-      <div class="formation-tabs">
-        <button 
-          v-for="tab in formationTabs" 
-          :key="tab.key"
-          :class="['tab-btn', { active: activeTab === tab.key }]"
-          @click="activeTab = tab.key"
-        >
-          {{ tab.label }}
-        </button>
-      </div>
-      <div class="formation-preview">
-        <div class="formation-grid" :class="'formation-' + activeTab">
-          <div 
-            v-for="n in formationCount" 
-            :key="n"
-            class="formation-slot"
-            :class="{ filled: n <= formationMembers.length }"
-          >
-            <img 
-              v-if="n <= formationMembers.length" 
-              :src="formationMembers[n-1]?.img" 
-              :alt="formationMembers[n-1]?.name"
-            />
-            <span v-else class="slot-number">{{ n }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 分享操作 -->
-    <div class="share-section">
-      <h3 class="section-title">{{ $t('result.share.title') }}</h3>
-      <div class="share-buttons">
-        <button class="share-btn primary" @click="downloadImage">
-          <span class="btn-icon">💾</span>
-          <span>{{ $t('result.share.download') }}</span>
-        </button>
-        <button class="share-btn secondary" @click="copyLink">
-          <span class="btn-icon">🔗</span>
-          <span>{{ $t('result.share.copy') }}</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- 重新开始 -->
-    <div class="restart-section">
-      <router-link to="/battle" class="restart-btn">
-        <span class="btn-icon">🔄</span>
-        <span>{{ $t('result.restart') }}</span>
+    <!-- 无结果状态 -->
+    <div v-else-if="!hasResult" class="no-result-state">
+      <h2>{{ $t('result.noResult') }}</h2>
+      <p>{{ $t('result.pleaseComplete') }}</p>
+      <router-link to="/battle" class="primary-btn">
+        {{ $t('result.startSorting') }}
       </router-link>
     </div>
+
+    <!-- 结果展示 -->
+    <template v-else>
+      <!-- 结果标题 -->
+      <div class="result-header">
+        <h1 class="result-title">{{ $t('result.title') }}</h1>
+        <p class="result-subtitle">{{ $t('result.subtitle') }}</p>
+      </div>
+
+      <!-- 排名展示区域 -->
+      <div class="ranking-section" ref="rankingContainer">
+        <div class="ranking-header">
+          <span class="rank-label">#</span>
+          <span class="member-label">{{ $t('result.member') }}</span>
+        </div>
+        <div class="ranking-list">
+          <div 
+            v-for="(member, index) in rankingList" 
+            :key="member.id"
+            class="rank-item"
+            :class="{ 'top3': member.rank <= 3, 'tied': member.tied }"
+            :style="{ animationDelay: index * 0.05 + 's' }"
+          >
+            <span class="rank-number" :class="'rank-' + member.rank">{{ member.rank }}</span>
+            <div class="member-info">
+              <img :src="member.img" :alt="member.name" class="member-avatar" />
+              <div class="member-details">
+                <span class="member-name">{{ member.name }}</span>
+                <span class="member-gen">{{ member.gen }}</span>
+              </div>
+            </div>
+            <div v-if="member.rank <= 3" class="rank-medal">{{ ['🥇', '🥈', '🥉'][member.rank - 1] }}</div>
+            <div v-if="member.tied" class="tie-badge">=</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 阵型切换 -->
+      <div class="formation-section">
+        <h3 class="section-title">{{ $t('result.formation.title') }}</h3>
+        <div class="formation-tabs">
+          <button 
+            v-for="tab in formationTabs" 
+            :key="tab.key"
+            :class="['tab-btn', { active: activeTab === tab.key }]"
+            @click="activeTab = tab.key"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
+        <div class="formation-preview">
+          <div class="formation-grid" :class="'formation-' + activeTab">
+            <div 
+              v-for="n in formationCount" 
+              :key="n"
+              class="formation-slot"
+              :class="{ filled: n <= formationMembers.length }"
+            >
+              <img 
+                v-if="n <= formationMembers.length" 
+                :src="formationMembers[n-1]?.img" 
+                :alt="formationMembers[n-1]?.name"
+              />
+              <span v-else class="slot-number">{{ n }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 分享操作 -->
+      <div class="share-section">
+        <h3 class="section-title">{{ $t('result.share.title') }}</h3>
+        <div class="share-buttons">
+          <button class="share-btn primary" @click="downloadImage">
+            <span class="btn-icon">💾</span>
+            <span>{{ $t('result.share.download') }}</span>
+          </button>
+          <button class="share-btn secondary" @click="copyLink">
+            <span class="btn-icon">🔗</span>
+            <span>{{ $t('result.share.copy') }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 重新开始 -->
+      <div class="restart-section">
+        <button @click="restart" class="restart-btn">
+          <span class="btn-icon">🔄</span>
+          <span>{{ $t('result.restart') }}</span>
+        </button>
+      </div>
+    </template>
   </div>
 </template>
 
 <script>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+
 export default {
   name: 'ResultView',
-  data() {
-    return {
-      activeTab: 'senbatsu',
-      formationTabs: [
-        { key: 'senbatsu', label: this.$t('result.formation.senbatsu') },
-        { key: 'under', label: this.$t('result.formation.under') },
-        { key: 'all', label: this.$t('result.formation.all') }
-      ],
-      rankingList: Array.from({ length: 20 }, (_, i) => ({
-        id: i + 1,
-        name: `Member ${i + 1}`,
-        generation: `${Math.floor(i / 5) + 1}期生`,
-        img: `https://via.placeholder.com/60x60/7e1083/ffffff?text=${i + 1}`
-      }))
-    }
-  },
-  computed: {
-    formationCount() {
-      const counts = { senbatsu: 16, under: 21, all: 46 }
-      return counts[this.activeTab] || 16
-    },
-    formationMembers() {
-      return this.rankingList.slice(0, this.formationCount)
-    }
-  },
-  methods: {
-    downloadImage() {
+  setup() {
+    const router = useRouter()
+    const { t } = useI18n()
+    
+    const isReady = ref(false)
+    const hasResult = ref(false)
+    const rankingList = ref([])
+    const activeTab = ref('senbatsu')
+
+    const formationTabs = computed(() => [
+      { key: 'senbatsu', label: t('result.formation.senbatsu') },
+      { key: 'under', label: t('result.formation.under') },
+      { key: 'all', label: t('result.formation.all') }
+    ])
+
+    const formationCount = computed(() => {
+      const counts = { senbatsu: 16, under: 21, all: rankingList.value.length }
+      return counts[activeTab.value] || 16
+    })
+
+    const formationMembers = computed(() => {
+      return rankingList.value.slice(0, formationCount.value)
+    })
+
+    onMounted(() => {
+      // 从 sessionStorage 获取排序结果
+      const savedResult = sessionStorage.getItem('n46_final_ranking')
+      if (savedResult) {
+        try {
+          rankingList.value = JSON.parse(savedResult)
+          hasResult.value = true
+        } catch (e) {
+          console.error('Failed to parse ranking result:', e)
+        }
+      }
+      isReady.value = true
+    })
+
+    function downloadImage() {
       // 使用 html2canvas 生成图片
       console.log('Downloading image...')
-    },
-    copyLink() {
+      alert('图片下载功能开发中...')
+    }
+
+    function copyLink() {
       navigator.clipboard.writeText(window.location.href)
-        .then(() => alert('链接已复制！'))
-        .catch(() => alert('复制失败'))
+        .then(() => alert(t('result.linkCopied')))
+        .catch(() => alert(t('result.copyFailed')))
+    }
+
+    function restart() {
+      // 清除进度和结果
+      localStorage.removeItem('n46_sort_progress')
+      sessionStorage.removeItem('n46_final_ranking')
+      router.push('/battle')
+    }
+
+    return {
+      isReady,
+      hasResult,
+      rankingList,
+      activeTab,
+      formationTabs,
+      formationCount,
+      formationMembers,
+      downloadImage,
+      copyLink,
+      restart
     }
   }
 }
@@ -138,6 +195,58 @@ export default {
   padding: 2rem;
   max-width: 900px;
   margin: 0 auto;
+}
+
+/* 加载状态 */
+.loading-state,
+.no-result-state {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(126, 16, 131, 0.2);
+  border-top-color: #7e1083;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.no-result-state h2 {
+  font-size: 1.8rem;
+  color: #fff;
+}
+
+.no-result-state p {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.primary-btn {
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #7e1083 0%, #9c27b0 100%);
+  border: none;
+  border-radius: 50px;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(126, 16, 131, 0.4);
 }
 
 /* 结果标题 */
@@ -219,6 +328,10 @@ export default {
   border: 1px solid rgba(126, 16, 131, 0.2);
 }
 
+.rank-item.tied {
+  border-left: 3px solid rgba(255, 215, 0, 0.5);
+}
+
 .rank-number {
   width: 50px;
   font-size: 1.25rem;
@@ -272,6 +385,13 @@ export default {
 
 .rank-medal {
   font-size: 1.5rem;
+}
+
+.tie-badge {
+  font-size: 1rem;
+  color: rgba(255, 215, 0, 0.8);
+  font-weight: 700;
+  margin-left: 0.5rem;
 }
 
 /* 阵型区域 */
@@ -421,6 +541,8 @@ export default {
   border-radius: 50px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
+  cursor: pointer;
+  font-size: 1rem;
 }
 
 .restart-btn:hover {

@@ -30,12 +30,21 @@
     "select": "Click to select",
     "left": "Left",
     "right": "Right",
-    "drawKey": "Space"
+    "drawKey": "Space",
+    "loading": "Loading...",
+    "complete": "Sorting Complete!",
+    "viewResult": "View Result",
+    "undo": "Undo"
   },
   "result": {
     "title": "Your Ranking Result",
     "subtitle": "Nogizaka46 Member Ranking",
     "member": "Member",
+    "noResult": "No ranking result",
+    "pleaseComplete": "Please complete the sorting first",
+    "startSorting": "Start Sorting",
+    "linkCopied": "Link copied!",
+    "copyFailed": "Copy failed",
     "formation": {
       "title": "Formation",
       "senbatsu": "Senbatsu (16)",

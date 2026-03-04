@@ -1,128 +1,199 @@
 <template>
   <div class="battle-view">
-    <!-- 进度条 -->
-    <div class="progress-section">
-      <div class="progress-info">
-        <span class="progress-label">{{ $t('battle.progress') }}</span>
-        <span class="progress-text">{{ $t('battle.round', { current: currentRound, total: totalRounds }) }}</span>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
-      </div>
+    <!-- 加载状态 -->
+    <div v-if="!isReady" class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>{{ $t('battle.loading') }}</p>
     </div>
 
-    <!-- 对战标题 -->
-    <h2 class="battle-title">{{ $t('battle.title') }}</h2>
-
-    <!-- 对战卡片区域 -->
-    <div class="battle-arena">
-      <div class="card-wrapper left" @click="selectLeft">
-        <BattleCard 
-          :name="leftMember.name" 
-          :img="leftMember.img"
-          class="battle-card"
-        />
-        <div class="select-hint">{{ $t('battle.select') }}</div>
-      </div>
-
-      <div class="vs-container">
-        <div class="vs-circle">VS</div>
-      </div>
-
-      <div class="card-wrapper right" @click="selectRight">
-        <BattleCard 
-          :name="rightMember.name" 
-          :img="rightMember.img"
-          class="battle-card"
-        />
-        <div class="select-hint">{{ $t('battle.select') }}</div>
-      </div>
-    </div>
-
-    <!-- 操作按钮 -->
-    <div class="action-buttons">
-      <button class="action-btn skip" @click="skip">
-        <span class="btn-icon">⏭</span>
-        <span>{{ $t('battle.skip') }}</span>
-      </button>
-      <button class="action-btn draw" @click="draw">
-        <span class="btn-icon">⚖️</span>
-        <span>{{ $t('battle.draw') }}</span>
+    <!-- 排序完成 -->
+    <div v-else-if="isComplete" class="complete-state">
+      <h2>{{ $t('battle.complete') }}</h2>
+      <button class="primary-btn" @click="goToResult">
+        {{ $t('battle.viewResult') }}
       </button>
     </div>
 
-    <!-- 键盘快捷键提示 -->
-    <div class="keyboard-hints">
-      <span class="hint">← {{ $t('battle.left') }}</span>
-      <span class="hint">{{ $t('battle.drawKey') }} {{ $t('battle.draw') }}</span>
-      <span class="hint">{{ $t('battle.right') }} →</span>
-    </div>
+    <!-- 对战界面 -->
+    <template v-else>
+      <!-- 进度条 -->
+      <div class="progress-section">
+        <div class="progress-info">
+          <span class="progress-label">{{ $t('battle.progress') }}</span>
+          <span class="progress-text">{{ $t('battle.round', { current: currentBattleNum, total: totalBattles }) }}</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" :style="{ width: progress + '%' }"></div>
+        </div>
+      </div>
+
+      <!-- 对战标题 -->
+      <h2 class="battle-title">{{ $t('battle.title') }}</h2>
+
+      <!-- 对战卡片区域 -->
+      <div class="battle-arena" v-if="currentBattle">
+        <div class="card-wrapper left" @click="selectLeft">
+          <BattleCard 
+            :name="currentBattle.left.name" 
+            :img="currentBattle.left.img"
+            class="battle-card"
+          />
+          <div class="select-hint">{{ $t('battle.select') }}</div>
+        </div>
+
+        <div class="vs-container">
+          <div class="vs-circle">VS</div>
+        </div>
+
+        <div class="card-wrapper right" @click="selectRight">
+          <BattleCard 
+            :name="currentBattle.right.name" 
+            :img="currentBattle.right.img"
+            class="battle-card"
+          />
+          <div class="select-hint">{{ $t('battle.select') }}</div>
+        </div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div class="action-buttons">
+        <button class="action-btn undo" @click="handleUndo" :disabled="!canUndo">
+          <span class="btn-icon">↩️</span>
+          <span>{{ $t('battle.undo') }}</span>
+        </button>
+        <button class="action-btn draw" @click="handleDraw">
+          <span class="btn-icon">⚖️</span>
+          <span>{{ $t('battle.draw') }}</span>
+        </button>
+      </div>
+
+      <!-- 键盘快捷键提示 -->
+      <div class="keyboard-hints">
+        <span class="hint">← {{ $t('battle.left') }}</span>
+        <span class="hint">{{ $t('battle.drawKey') }} {{ $t('battle.draw') }}</span>
+        <span class="hint">{{ $t('battle.right') }} →</span>
+      </div>
+    </template>
   </div>
 </template>
 
 <script>
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import BattleCard from "../components/BattleCard.vue"
+import { useSorter } from "../composables/useSorter.js"
 import { members } from "../data/members.js"
 
 export default {
   name: 'BattleView',
   components: { BattleCard },
-  data() {
-    return {
-      currentRound: 1,
-      totalRounds: 100,
-      leftMember: {
-        name: "Member A",
-        img: "https://via.placeholder.com/300x400/7e1083/ffffff?text=Member+A"
-      },
-      rightMember: {
-        name: "Member B", 
-        img: "https://via.placeholder.com/300x400/16213e/ffffff?text=Member+B"
-      }
-    }
-  },
-  computed: {
-    progressPercent() {
-      return (this.currentRound / this.totalRounds) * 100
-    }
-  },
-  mounted() {
-    // 添加键盘事件监听
-    window.addEventListener('keydown', this.handleKeydown)
-  },
-  beforeUnmount() {
-    window.removeEventListener('keydown', this.handleKeydown)
-  },
-  methods: {
-    selectLeft() {
-      this.nextRound()
-    },
-    selectRight() {
-      this.nextRound()
-    },
-    skip() {
-      this.nextRound()
-    },
-    draw() {
-      this.nextRound()
-    },
-    nextRound() {
-      if (this.currentRound < this.totalRounds) {
-        this.currentRound++
-        // 这里应该更新成员数据
+  setup() {
+    const router = useRouter()
+    const {
+      currentBattle,
+      progress,
+      currentBattleNum,
+      totalBattles,
+      isComplete,
+      init,
+      vote,
+      undo,
+      hasSavedProgress,
+      restoreProgress,
+      getFinalRanking
+    } = useSorter()
+
+    const isReady = ref(false)
+    const canUndo = computed(() => currentBattleNum.value > 1)
+
+    // 初始化
+    onMounted(() => {
+      // 检查是否有保存的进度
+      if (hasSavedProgress()) {
+        restoreProgress()
       } else {
-        // 完成所有轮次，跳转到结果页
-        this.$router.push('/result')
+        // 初始化新的排序，使用所有成员
+        init(members)
       }
-    },
-    handleKeydown(e) {
+      isReady.value = true
+
+      // 添加键盘事件监听
+      window.addEventListener('keydown', handleKeydown)
+    })
+
+    onUnmounted(() => {
+      window.removeEventListener('keydown', handleKeydown)
+    })
+
+    // 监听排序完成
+    watch(isComplete, (complete) => {
+      if (complete) {
+        // 将结果存储到 sessionStorage，供结果页使用
+        const ranking = getFinalRanking()
+        sessionStorage.setItem('n46_final_ranking', JSON.stringify(ranking))
+      }
+    })
+
+    // 选择左边
+    function selectLeft() {
+      if (!currentBattle.value) return
+      vote('left')
+    }
+
+    // 选择右边
+    function selectRight() {
+      if (!currentBattle.value) return
+      vote('right')
+    }
+
+    // 平局
+    function handleDraw() {
+      if (!currentBattle.value) return
+      vote('tie')
+    }
+
+    // 撤销
+    function handleUndo() {
+      undo()
+    }
+
+    // 跳转到结果页
+    function goToResult() {
+      router.push('/result')
+    }
+
+    // 键盘事件处理
+    function handleKeydown(e) {
+      if (!currentBattle.value || isComplete.value) return
+      
       if (e.key === 'ArrowLeft') {
-        this.selectLeft()
+        e.preventDefault()
+        selectLeft()
       } else if (e.key === 'ArrowRight') {
-        this.selectRight()
+        e.preventDefault()
+        selectRight()
       } else if (e.key === ' ' || e.key === 'Enter') {
-        this.draw()
+        e.preventDefault()
+        handleDraw()
+      } else if (e.key === 'z' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault()
+        handleUndo()
       }
+    }
+
+    return {
+      isReady,
+      isComplete,
+      currentBattle,
+      progress,
+      currentBattleNum,
+      totalBattles,
+      canUndo,
+      selectLeft,
+      selectRight,
+      handleDraw,
+      handleUndo,
+      goToResult
     }
   }
 }
@@ -136,6 +207,61 @@ export default {
   flex-direction: column;
   max-width: 1200px;
   margin: 0 auto;
+}
+
+/* 加载状态 */
+.loading-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(126, 16, 131, 0.2);
+  border-top-color: #7e1083;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 完成状态 */
+.complete-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.complete-state h2 {
+  font-size: 2rem;
+  color: #fff;
+}
+
+.primary-btn {
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #7e1083 0%, #9c27b0 100%);
+  border: none;
+  border-radius: 50px;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(126, 16, 131, 0.4);
 }
 
 /* 进度条 */
@@ -276,10 +402,15 @@ export default {
   transition: all 0.3s ease;
 }
 
-.action-btn:hover {
+.action-btn:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .btn-icon {
