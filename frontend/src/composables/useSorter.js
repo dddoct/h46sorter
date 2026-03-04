@@ -191,31 +191,47 @@ export function useSorter() {
     return total
   }
 
-  // 获取最终排名
+  // 获取最终排名 - 修复平局排名逻辑
   function getFinalRanking() {
     const ranking = []
     let currentRank = 1
     const result = finalResult.value
+    let i = 0
 
-    for (let i = 0; i < result.length; i++) {
+    while (i < result.length) {
       const item = result[i]
       const member = members.value[item.id]
       
-      ranking.push({
-        rank: currentRank,
-        id: item.id,
-        name: member.name,
-        nameJa: member.nameJa || member.name,
-        img: member.img,
-        gen: member.gen,
-        tied: item.tiedWithId !== null,
-        tiedWithId: item.tiedWithId
-      })
-
-      if (item.tiedWithId === null || 
-          (i + 1 < result.length && result[i + 1].id !== item.tiedWithId)) {
-        currentRank++
+      // 计算当前排名位置的成员数量（包括平局的）
+      let tiedCount = 1
+      let tiedGroup = [item]
+      
+      // 检查后续是否有平局的成员
+      while (i + tiedCount < result.length && 
+             tiedGroup[tiedGroup.length - 1].tiedWithId === result[i + tiedCount].id) {
+        tiedGroup.push(result[i + tiedCount])
+        tiedCount++
       }
+      
+      // 为这一组（平局或单个）添加排名
+      for (let j = 0; j < tiedGroup.length; j++) {
+        const tiedItem = tiedGroup[j]
+        const tiedMember = members.value[tiedItem.id]
+        ranking.push({
+          rank: currentRank,
+          id: tiedItem.id,
+          name: tiedMember.name,
+          nameJa: tiedMember.nameJa || tiedMember.name,
+          img: tiedMember.img,
+          gen: tiedMember.gen,
+          tied: tiedCount > 1,
+          tiedWithId: tiedItem.tiedWithId
+        })
+      }
+      
+      // 排名增加这一组的人数
+      currentRank += tiedCount
+      i += tiedCount
     }
 
     return ranking
