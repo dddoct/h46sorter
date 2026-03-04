@@ -1,7 +1,7 @@
 {
   "app": {
-    "title": "N46Sorter | 乃木坂46排名",
-    "description": "乃木坂46现役・毕业成员对应。只需二选一即可创建你的推顺排名，还能再现选拔阵型。结果可以保存为高画质的分享图片。"
+    "title": "H46Sorter | 日向坂46排名",
+    "description": "日向坂46现役成员对应。只需二选一即可创建你的推顺排名，还能再现选拔阵型。结果可以保存为高画质的分享图片。"
   },
   "nav": {
     "home": "首页",
@@ -11,12 +11,12 @@
   },
   "home": {
     "welcome": "欢迎",
-    "subtitle": "乃木坂46 推顺排名生成器",
-    "description": "通过简单的二选一，创建属于你的乃木坂46成员排名",
+    "subtitle": "日向坂46 推顺排名生成器",
+    "description": "通过简单的二选一，创建属于你的日向坂46成员排名",
     "startButton": "开始排序",
     "features": {
       "title": "功能特色",
-      "allMembers": "现役・毕业成员全对应",
+      "allMembers": "现役成员全对应",
       "formation": "选拔阵型再现",
       "share": "高画质图片分享"
     }
@@ -38,7 +38,7 @@
   },
   "result": {
     "title": "你的排名结果",
-    "subtitle": "乃木坂46 推顺排名",
+    "subtitle": "日向坂46 推顺排名",
     "member": "成员",
     "noResult": "暂无排名结果",
     "pleaseComplete": "请先完成排序",

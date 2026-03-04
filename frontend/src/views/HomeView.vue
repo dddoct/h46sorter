@@ -2,7 +2,7 @@
   <div class="home-view">
     <div class="hero-section">
       <div class="logo-container">
-        <div class="logo-icon">N46</div>
+        <div class="logo-icon">H46</div>
         <h1 class="main-title">{{ $t('home.welcome') }}</h1>
       </div>
       <h2 class="subtitle">{{ $t('home.subtitle') }}</h2>
@@ -33,7 +33,7 @@
     </div>
 
     <footer class="home-footer">
-      <p>N46Sorter © 2024</p>
+      <p>H46Sorter © 2026</p>
     </footer>
   </div>
 </template>
@@ -59,7 +59,7 @@ export default {
   align-items: center;
   text-align: center;
   padding: 3rem 1.5rem;
-  background: linear-gradient(180deg, rgba(126, 16, 131, 0.1) 0%, transparent 50%);
+  background: linear-gradient(180deg, rgba(88, 190, 228, 0.08) 0%, transparent 50%);
 }
 
 .logo-container {
@@ -69,7 +69,7 @@ export default {
 .logo-icon {
   width: 100px;
   height: 100px;
-  background: linear-gradient(135deg, #7e1083 0%, #9c27b0 100%);
+  background: linear-gradient(135deg, #58bee4 0%, #7dd3f0 100%);
   border-radius: 24px;
   display: flex;
   align-items: center;
@@ -78,13 +78,13 @@ export default {
   font-weight: 800;
   color: #fff;
   margin: 0 auto 1.5rem;
-  box-shadow: 0 20px 40px rgba(126, 16, 131, 0.3);
+  box-shadow: 0 20px 40px rgba(88, 190, 228, 0.3);
 }
 
 .main-title {
   font-size: 3rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%);
+  background: linear-gradient(135deg, #1a1a2e 0%, #58bee4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -93,14 +93,14 @@ export default {
 
 .subtitle {
   font-size: 1.5rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #1a1a2e;
   margin-bottom: 1rem;
   font-weight: 600;
 }
 
 .description {
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(26, 26, 46, 0.6);
   max-width: 500px;
   margin-bottom: 2.5rem;
   line-height: 1.6;
@@ -111,19 +111,19 @@ export default {
   align-items: center;
   gap: 0.75rem;
   padding: 1rem 2.5rem;
-  background: linear-gradient(135deg, #7e1083 0%, #9c27b0 100%);
+  background: linear-gradient(135deg, #58bee4 0%, #7dd3f0 100%);
   color: #fff;
   text-decoration: none;
   border-radius: 50px;
   font-size: 1.2rem;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 10px 30px rgba(126, 16, 131, 0.4);
+  box-shadow: 0 10px 30px rgba(88, 190, 228, 0.4);
 }
 
 .start-button:hover {
   transform: translateY(-3px);
-  box-shadow: 0 20px 40px rgba(126, 16, 131, 0.5);
+  box-shadow: 0 20px 40px rgba(88, 190, 228, 0.5);
 }
 
 .button-arrow {
@@ -136,14 +136,14 @@ export default {
 
 .features-section {
   padding: 3rem 1.5rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(88, 190, 228, 0.02);
 }
 
 .features-title {
   text-align: center;
   font-size: 1.5rem;
   margin-bottom: 2rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #1a1a2e;
 }
 
 .features-grid {
@@ -155,18 +155,20 @@ export default {
 }
 
 .feature-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.8);
   border-radius: 16px;
   padding: 2rem 1.5rem;
   text-align: center;
   transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(88, 190, 228, 0.1);
+  box-shadow: 0 4px 20px rgba(88, 190, 228, 0.05);
 }
 
 .feature-card:hover {
   transform: translateY(-5px);
-  background: rgba(126, 16, 131, 0.1);
-  border-color: rgba(126, 16, 131, 0.3);
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(88, 190, 228, 0.3);
+  box-shadow: 0 10px 30px rgba(88, 190, 228, 0.15);
 }
 
 .feature-icon {
@@ -176,14 +178,14 @@ export default {
 
 .feature-card h4 {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: #1a1a2e;
   font-weight: 500;
 }
 
 .home-footer {
   text-align: center;
   padding: 2rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(26, 26, 46, 0.4);
   font-size: 0.9rem;
 }
 

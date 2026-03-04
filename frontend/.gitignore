@@ -22,3 +22,18 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Project specific - don't upload to GitHub
+# HTML source files from official website
+hinatazaka46.html
+member.html
+h46member.md
+n46-sorter.html
+
+# Test files
+test-*.js
+*.test.js
+
+# Temporary files
+*.tmp
+*.temp

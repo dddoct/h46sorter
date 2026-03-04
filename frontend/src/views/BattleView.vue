@@ -34,7 +34,7 @@
       <div class="battle-arena" v-if="currentBattle">
         <div class="card-wrapper left" @click="selectLeft">
           <BattleCard 
-            :name="currentBattle.left.name" 
+            :name="getDisplayName(currentBattle.left)" 
             :img="currentBattle.left.img"
             class="battle-card"
           />
@@ -47,7 +47,7 @@
 
         <div class="card-wrapper right" @click="selectRight">
           <BattleCard 
-            :name="currentBattle.right.name" 
+            :name="getDisplayName(currentBattle.right)" 
             :img="currentBattle.right.img"
             class="battle-card"
           />
@@ -78,7 +78,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import BattleCard from "../components/BattleCard.vue"
 import { useSorter } from "../composables/useSorter.js"
@@ -89,6 +89,7 @@ export default {
   components: { BattleCard },
   setup() {
     const router = useRouter()
+    const currentLocale = inject('currentLocale')
     const {
       currentBattle,
       progress,
@@ -105,6 +106,15 @@ export default {
 
     const isReady = ref(false)
     const canUndo = computed(() => currentBattleNum.value > 1)
+
+    // 获取显示名称：英文用nameEn，中日用name
+    function getDisplayName(member) {
+      if (!member) return ''
+      if (currentLocale.value === 'en' && member.nameEn) {
+        return member.nameEn
+      }
+      return member.name
+    }
 
     // 初始化
     onMounted(() => {
@@ -130,7 +140,7 @@ export default {
       if (complete) {
         // 将结果存储到 sessionStorage，供结果页使用
         const ranking = getFinalRanking()
-        sessionStorage.setItem('n46_final_ranking', JSON.stringify(ranking))
+        sessionStorage.setItem('h46_final_ranking', JSON.stringify(ranking))
       }
     })
 
@@ -189,6 +199,7 @@ export default {
       currentBattleNum,
       totalBattles,
       canUndo,
+      getDisplayName,
       selectLeft,
       selectRight,
       handleDraw,
@@ -222,8 +233,8 @@ export default {
 .loading-spinner {
   width: 50px;
   height: 50px;
-  border: 3px solid rgba(126, 16, 131, 0.2);
-  border-top-color: #7e1083;
+  border: 3px solid rgba(88, 190, 228, 0.2);
+  border-top-color: #58bee4;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -244,12 +255,12 @@ export default {
 
 .complete-state h2 {
   font-size: 2rem;
-  color: #fff;
+  color: #1a1a2e;
 }
 
 .primary-btn {
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #7e1083 0%, #9c27b0 100%);
+  background: linear-gradient(135deg, #58bee4 0%, #7dd3f0 100%);
   border: none;
   border-radius: 50px;
   color: #fff;
@@ -261,7 +272,7 @@ export default {
 
 .primary-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(126, 16, 131, 0.4);
+  box-shadow: 0 10px 30px rgba(88, 190, 228, 0.4);
 }
 
 /* 进度条 */
@@ -278,25 +289,25 @@ export default {
 
 .progress-label {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(26, 26, 46, 0.6);
 }
 
 .progress-text {
   font-size: 0.9rem;
-  color: #fff;
+  color: #1a1a2e;
   font-weight: 600;
 }
 
 .progress-bar {
   height: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(88, 190, 228, 0.1);
   border-radius: 3px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #7e1083, #9c27b0);
+  background: linear-gradient(90deg, #58bee4, #7dd3f0);
   border-radius: 3px;
   transition: width 0.3s ease;
 }
@@ -305,7 +316,7 @@ export default {
 .battle-title {
   text-align: center;
   font-size: 1.5rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(26, 26, 46, 0.8);
   margin-bottom: 2rem;
   font-weight: 500;
 }
@@ -331,7 +342,7 @@ export default {
 }
 
 .card-wrapper:hover .battle-card {
-  box-shadow: 0 25px 50px rgba(126, 16, 131, 0.4);
+  box-shadow: 0 25px 50px rgba(88, 190, 228, 0.4);
 }
 
 .select-hint {
@@ -340,7 +351,7 @@ export default {
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(26, 26, 46, 0.5);
   opacity: 0;
   transition: opacity 0.3s;
   white-space: nowrap;
@@ -359,7 +370,7 @@ export default {
 .vs-circle {
   width: 70px;
   height: 70px;
-  background: linear-gradient(135deg, #7e1083 0%, #9c27b0 100%);
+  background: linear-gradient(135deg, #58bee4 0%, #7dd3f0 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -367,7 +378,7 @@ export default {
   font-size: 1.5rem;
   font-weight: 800;
   color: #fff;
-  box-shadow: 0 10px 30px rgba(126, 16, 131, 0.4);
+  box-shadow: 0 10px 30px rgba(88, 190, 228, 0.4);
   animation: pulse 2s infinite;
 }
 
@@ -394,18 +405,19 @@ export default {
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   border-radius: 50px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(88, 190, 228, 0.2);
+  background: rgba(255, 255, 255, 0.8);
+  color: rgba(26, 26, 46, 0.8);
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .action-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(88, 190, 228, 0.4);
   transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(88, 190, 228, 0.2);
 }
 
 .action-btn:disabled {
@@ -427,11 +439,11 @@ export default {
 
 .hint {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(26, 26, 46, 0.4);
   padding: 0.4rem 0.8rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(88, 190, 228, 0.05);
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(88, 190, 228, 0.1);
 }
 
 /* 响应式设计 */

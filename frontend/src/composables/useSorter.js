@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 
-const PROGRESS_KEY = 'n46_sort_progress'
+const PROGRESS_KEY = 'h46_sort_progress'
 
 export function useSorter() {
   const members = ref([])
@@ -221,7 +221,7 @@ export function useSorter() {
           rank: currentRank,
           id: tiedItem.id,
           name: tiedMember.name,
-          nameJa: tiedMember.nameJa || tiedMember.name,
+          nameEn: tiedMember.nameEn || tiedMember.name,
           img: tiedMember.img,
           gen: tiedMember.gen,
           tied: tiedCount > 1,

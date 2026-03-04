@@ -2,7 +2,7 @@
   <div class="app">
     <header class="header">
       <router-link to="/" class="logo">
-        <span class="logo-text">N46</span>
+        <span class="logo-text">H46</span>
         <span class="logo-suffix">Sorter</span>
       </router-link>
       <nav class="nav">
@@ -32,7 +32,7 @@
 
 <script>
 import { useI18n } from 'vue-i18n'
-import { ref } from 'vue'
+import { ref, provide } from 'vue'
 
 export default {
   name: 'App',
@@ -50,6 +50,9 @@ export default {
       locale.value = code
       currentLocale.value = code
     }
+
+    // 提供当前语言给子组件
+    provide('currentLocale', currentLocale)
 
     return {
       currentLocale,
@@ -70,8 +73,8 @@ export default {
 .app {
   min-height: 100vh;
   font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(135deg, #0f0f1e 0%, #1a1a3e 50%, #16213e 100%);
-  color: #fff;
+  background: linear-gradient(135deg, #f5fcff 0%, #e8f8fc 50%, #ffffff 100%);
+  color: #1a1a2e;
 }
 
 .header {
@@ -79,9 +82,9 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: rgba(15, 15, 30, 0.8);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(0, 153, 255, 0.1);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -92,13 +95,13 @@ export default {
   align-items: center;
   gap: 0.25rem;
   text-decoration: none;
-  color: #fff;
+  color: #1a1a2e;
 }
 
 .logo-text {
   font-size: 1.5rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #7e1083 0%, #9c27b0 100%);
+  background: linear-gradient(135deg, #58bee4 0%, #7dd3f0 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -107,7 +110,7 @@ export default {
 .logo-suffix {
   font-size: 1.5rem;
   font-weight: 300;
-  color: rgba(255, 255, 255, 0.8);
+  color: #1a1a2e;
 }
 
 .nav {
@@ -117,7 +120,7 @@ export default {
 }
 
 .nav-link {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(26, 26, 46, 0.7);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.95rem;
@@ -127,7 +130,7 @@ export default {
 
 .nav-link:hover,
 .nav-link.active {
-  color: #fff;
+  color: #58bee4;
 }
 
 .nav-link.active::after {
@@ -137,14 +140,14 @@ export default {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #7e1083, #9c27b0);
+  background: linear-gradient(90deg, #58bee4, #7dd3f0);
   border-radius: 2px;
 }
 
 .lang-switcher {
   display: flex;
   gap: 0.25rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(88, 190, 228, 0.05);
   padding: 0.25rem;
   border-radius: 8px;
 }
@@ -153,7 +156,7 @@ export default {
   padding: 0.4rem 0.8rem;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(26, 26, 46, 0.6);
   font-size: 0.85rem;
   cursor: pointer;
   border-radius: 6px;
@@ -162,12 +165,12 @@ export default {
 }
 
 .lang-btn:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  color: #58bee4;
+  background: rgba(88, 190, 228, 0.1);
 }
 
 .lang-btn.active {
-  background: linear-gradient(135deg, #7e1083 0%, #9c27b0 100%);
+  background: linear-gradient(135deg, #58bee4 0%, #7dd3f0 100%);
   color: #fff;
 }
 
@@ -201,13 +204,13 @@ export default {
     gap: 1rem;
   }
 
-  .nav-link {
-    font-size: 0.85rem;
+  .logo-text,
+  .logo-suffix {
+    font-size: 1.2rem;
   }
 
-  .lang-btn {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.75rem;
+  .lang-switcher {
+    display: none;
   }
 }
 </style>

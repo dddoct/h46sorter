@@ -1,7 +1,7 @@
 {
   "app": {
-    "title": "N46Sorter | Nogizaka46 Sorter",
-    "description": "Supports both active and graduated members of Nogizaka46. Create your favorite member ranking by simple choices, and reproduce the senbatsu formation. Results can be saved as high-quality shareable images."
+    "title": "H46Sorter | Hinatazaka46 Sorter",
+    "description": "Supports active members of Hinatazaka46. Create your favorite member ranking by simple choices, and reproduce the senbatsu formation. Results can be saved as high-quality shareable images."
   },
   "nav": {
     "home": "Home",
@@ -11,12 +11,12 @@
   },
   "home": {
     "welcome": "Welcome",
-    "subtitle": "Nogizaka46 Member Sorter",
-    "description": "Create your own Nogizaka46 member ranking through simple choices",
+    "subtitle": "Hinatazaka46 Member Sorter",
+    "description": "Create your own Hinatazaka46 member ranking through simple choices",
     "startButton": "Start Sorting",
     "features": {
       "title": "Features",
-      "allMembers": "All Active & Graduated Members",
+      "allMembers": "All Active Members",
       "formation": "Senbatsu Formation Reproduction",
       "share": "High-Quality Image Sharing"
     }
@@ -38,7 +38,7 @@
   },
   "result": {
     "title": "Your Ranking Result",
-    "subtitle": "Nogizaka46 Member Ranking",
+    "subtitle": "Hinatazaka46 Member Ranking",
     "member": "Member",
     "noResult": "No ranking result",
     "pleaseComplete": "Please complete the sorting first",
