@@ -71,11 +71,17 @@ h46-vue/
 - 成员信息：[日向坂46 Wikipedia](https://ja.wikipedia.org/wiki/日向坂46)
 - 成员图片：[日向坂46 官方网站](https://www.hinatazaka46.com/)
 
-此项目参考 [n46sorter.com](https://n46sorter.com)，为初学开发练手项目。
+此项目参考 [n46sorter.com](https://n46sorter.com)，为初学开发练手项目，仅作学习交流使用。
 
 ## 算法说明
 
 排序算法基于归并排序（Merge Sort）变种，通过两两对比确定成员偏好顺序。
+
+## 已知待修复问题
+
+- **拖拽逻辑**：长按出现图片与拖动成员位置混乱问题没有处理
+- **图片导出**：TOP5 没有人像图片，选拔处也未能正确导出图片
+- **内容缺失**：没有添加可选的毕业成员与成员社媒链接
 
 ## License
 
