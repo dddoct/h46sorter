@@ -175,6 +175,7 @@ export default {
 
 .main {
   padding: 0;
+  min-height: calc(100vh - 70px);
 }
 
 /* 页面切换动画 */

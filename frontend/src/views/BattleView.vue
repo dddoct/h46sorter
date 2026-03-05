@@ -224,8 +224,10 @@ export default {
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  max-width: 1200px;
+  width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 /* 加载状态 */
@@ -493,11 +495,15 @@ export default {
 
   .battle-arena-inner {
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
+  }
+
+  .card-wrapper {
+    width: 200px;
   }
 
   .vs-container {
-    order: -1;
+    margin: 0.5rem 0;
   }
 
   .vs-circle {

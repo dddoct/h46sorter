@@ -51,7 +51,8 @@ export default {
   border-radius: 16px;
   overflow: hidden;
   border: 2px solid transparent;
-  width: 280px;
+  width: 100%;
+  max-width: 280px;
   box-shadow: 0 4px 20px rgba(88, 190, 228, 0.1);
 }
 
