@@ -30,7 +30,7 @@
           <div class="top5-members">
             <div v-for="member in top5Members" :key="member.id" class="top5-member">
               <div class="top5-avatar-wrapper">
-                <img :src="member.img" :alt="getDisplayName(member)" class="top5-avatar" />
+                <img :src="getLocalImagePath(member)" :alt="getDisplayName(member)" class="top5-avatar" />
                 <div class="top5-rank">{{ member.rank }}</div>
               </div>
               <span class="top5-name">{{ getDisplayName(member) }}</span>
@@ -55,7 +55,7 @@
           >
             <span class="rank-number" :class="'rank-' + member.rank">{{ member.rank }}</span>
             <div class="member-info">
-              <img :src="member.img" :alt="getDisplayName(member)" class="member-avatar" />
+              <img :src="getLocalImagePath(member)" :alt="getDisplayName(member)" class="member-avatar" />
               <div class="member-details">
                 <span class="member-name">{{ getDisplayName(member) }}</span>
                 <span class="member-gen">{{ getGenDisplay(member.gen) }}</span>
@@ -108,7 +108,7 @@
                 <template v-if="member">
                   <div class="formation-member">
                     <img 
-                      :src="member.img" 
+                      :src="getLocalImagePath(member)" 
                       :alt="getDisplayName(member)"
                       :title="getDisplayName(member)"
                     />
@@ -158,7 +158,7 @@
             class="modal-member"
             @click="replaceMember(member)"
           >
-            <img :src="member.img" :alt="getDisplayName(member)" />
+            <img :src="getLocalImagePath(member)" :alt="getDisplayName(member)" />
             <span>{{ getDisplayName(member) }}</span>
           </div>
         </div>
@@ -314,6 +314,12 @@ export default {
         }
       }
       return gen
+    }
+
+    // 获取本地图片路径
+    function getLocalImagePath(member) {
+      if (!member || !member.name) return ''
+      return `/member_images/${member.name}.jpg`
     }
 
     // 检查成员是否在阵型中
@@ -592,6 +598,7 @@ export default {
       getSlotNumber,
       getDisplayName,
       getGenDisplay,
+      getLocalImagePath,
       isInFormation,
       handleSlotClick,
       closeModal,
@@ -1198,6 +1205,10 @@ export default {
 
 @media (max-width: 768px) {
   .result-view {
+    padding: 1rem;
+  }
+
+  .ranking-section {
     padding: 1rem;
   }
 

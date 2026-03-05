@@ -2,6 +2,8 @@
 
 日向坂46（Hinatazaka46）成员排序工具 - 基于 Vue 3 + Vite 开发
 
+🌐 **在线访问**: [https://h46sorter.pages.dev](https://h46sorter.pages.dev)
+
 参考 [n46sorter.com](https://n46sorter.com)，为初学开发练手项目。
 
 ## 功能特点
@@ -66,7 +68,10 @@ h46-vue/
 
 ## 数据来源
 
-参考 [n46sorter.com](https://n46sorter.com)
+- 成员信息：[日向坂46 Wikipedia](https://ja.wikipedia.org/wiki/日向坂46)
+- 成员图片：[日向坂46 官方网站](https://www.hinatazaka46.com/)
+
+参考 [n46sorter.com](https://n46sorter.com)，为初学开发练手项目。
 
 ## 算法说明
 
