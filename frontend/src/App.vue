@@ -7,7 +7,6 @@
       </router-link>
       <nav class="nav">
         <router-link to="/" class="nav-link" exact-active-class="active">{{ $t('nav.home') }}</router-link>
-        <router-link to="/battle" class="nav-link" active-class="active">{{ $t('nav.battle') }}</router-link>
         <div class="lang-switcher">
           <button 
             v-for="lang in languages" 

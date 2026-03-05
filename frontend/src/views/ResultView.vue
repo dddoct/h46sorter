@@ -1,12 +1,12 @@
 <template>
   <div class="result-view">
-    <!-- 加载状�?-->
+    <!-- 加载状�?-->
     <div v-if="!isReady" class="loading-state">
       <div class="loading-spinner"></div>
       <p>{{ $t('common.loading') }}</p>
     </div>
 
-    <!-- 无结果状�?-->
+    <!-- 无结果状�?-->
     <div v-else-if="!hasResult" class="no-result-state">
       <h2>{{ $t('result.noResult') }}</h2>
       <p>{{ $t('result.pleaseComplete') }}</p>
@@ -42,11 +42,11 @@
               <img :src="member.img" :alt="getDisplayName(member)" class="member-avatar" />
               <div class="member-details">
                 <span class="member-name">{{ getDisplayName(member) }}</span>
-                <span class="member-gen">{{ member.gen }}</span>
+                <span class="member-gen">{{ getGenDisplay(member.gen) }}</span>
               </div>
             </div>
             <div v-if="member.rank <= 3" class="rank-medal">{{ ['🥇', '🥈', '🥉'][member.rank - 1] }}</div>
-            <div v-if="member.tied" class="tie-badge">=</div>
+            <span class="member-score">{{ calculateScore(member.rank) }} pts</span>
           </div>
         </div>
       </div>
@@ -54,30 +54,36 @@
       <!-- 阵型切换 -->
       <div class="formation-section">
         <h3 class="section-title">{{ $t('result.formation.title') }}</h3>
-        <div class="formation-tabs">
-          <button 
-            v-for="tab in formationTabs" 
-            :key="tab.key"
-            :class="['tab-btn', { active: activeTab === tab.key }]"
-            @click="activeTab = tab.key"
-          >
-            {{ tab.label }}
-          </button>
+        <div class="formation-selector">
+          <label for="formation-size">{{ $t('result.formation.selectSize') }}</label>
+          <select id="formation-size" v-model.number="formationSize" class="formation-select">
+            <option v-for="size in formationSizes" :key="size" :value="size">
+              {{ size }}{{ $t('result.formation.members') }}
+            </option>
+          </select>
         </div>
         <div class="formation-preview">
-          <div class="formation-grid" :class="'formation-' + activeTab">
+          <div class="formation-stage" :class="'formation-' + formationSize">
             <div 
-              v-for="n in formationCount" 
-              :key="n"
-              class="formation-slot"
-              :class="{ filled: n <= formationMembers.length }"
+              v-for="(row, rowIndex) in formationRows" 
+              :key="rowIndex"
+              class="formation-row"
+              :class="'row-' + (rowIndex + 1)"
             >
-              <img 
-                v-if="n <= formationMembers.length" 
-                :src="formationMembers[n-1]?.img" 
-                :alt="getDisplayName(formationMembers[n-1])"
-              />
-              <span v-else class="slot-number">{{ n }}</span>
+              <div 
+                v-for="(member, slotIndex) in row" 
+                :key="slotIndex"
+                class="formation-slot"
+                :class="{ filled: member }"
+              >
+                <img 
+                  v-if="member" 
+                  :src="member.img" 
+                  :alt="getDisplayName(member)"
+                  :title="getDisplayName(member)"
+                />
+                <span v-else class="slot-number">{{ getSlotNumber(rowIndex, slotIndex) }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -98,7 +104,7 @@
         </div>
       </div>
 
-      <!-- 重新开�?-->
+      <!-- 重新开�?-->
       <div class="restart-section">
         <button @click="restart" class="restart-btn">
           <span class="btn-icon">🔄</span>
@@ -113,6 +119,7 @@
 import { ref, computed, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import html2canvas from 'html2canvas'
 
 export default {
   name: 'ResultView',
@@ -124,22 +131,104 @@ export default {
     const isReady = ref(false)
     const hasResult = ref(false)
     const rankingList = ref([])
-    const activeTab = ref('senbatsu')
+    const formationSize = ref(16)
 
-    const formationTabs = computed(() => [
-      { key: 'senbatsu', label: t('result.formation.senbatsu') },
-      { key: 'under', label: t('result.formation.under') },
-      { key: 'all', label: t('result.formation.all') }
-    ])
+    // 阵型人数选项：10-22人
+    const formationSizes = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
 
-    const formationCount = computed(() => {
-      const counts = { senbatsu: 16, under: 21, all: rankingList.value.length }
-      return counts[activeTab.value] || 16
+    // 计算分数：底分50，最高分100，线性递减
+    function calculateScore(rank) {
+      const totalMembers = rankingList.value.length
+      if (totalMembers <= 1) return 100
+      // 线性插值：第1名100分，最后一名50分
+      const score = 100 - ((rank - 1) / (totalMembers - 1)) * 50
+      return Math.round(score)
+    }
+
+    // 阵型排布配置（从后排到前排显示，但填充时从前往后）
+    // layout: [前排, 中间, 后排]（从舞台前到后）
+    const formationConfigs = {
+      10: { rows: 2, layout: [3, 7], display: [7, 3] },           // 前排3，后排7
+      11: { rows: 2, layout: [5, 6], display: [6, 5] },           // 前排5，后排6
+      12: { rows: 2, layout: [5, 7], display: [7, 5] },           // 前排5，后排7
+      13: { rows: 3, layout: [3, 4, 6], display: [6, 4, 3] },     // 前排3，中间4，后排6
+      14: { rows: 3, layout: [3, 5, 6], display: [6, 5, 3] },     // 前排3，中间5，后排6
+      15: { rows: 3, layout: [3, 6, 6], display: [6, 6, 3] },     // 前排3，中间6，后排6
+      16: { rows: 3, layout: [3, 6, 7], display: [7, 6, 3] },     // 前排3，中间6，后排7
+      17: { rows: 3, layout: [5, 6, 6], display: [6, 6, 5] },     // 前排5，中间6，后排6
+      18: { rows: 3, layout: [5, 6, 7], display: [7, 6, 5] },     // 前排5，中间6，后排7
+      19: { rows: 3, layout: [5, 6, 8], display: [8, 6, 5] },     // 前排5，中间6，后排8
+      20: { rows: 3, layout: [6, 7, 7], display: [7, 7, 6] },     // 前排6，中间7，后排7
+      21: { rows: 3, layout: [6, 7, 8], display: [8, 7, 6] },     // 前排6，中间7，后排8
+      22: { rows: 3, layout: [6, 8, 8], display: [8, 8, 6] }      // 前排6，中间8，后排8
+    }
+
+    // 计算每排的排列顺序（从中间向两边）
+    function getRowOrder(rowSize) {
+      const order = []
+      const center = Math.floor((rowSize - 1) / 2)
+      order.push(center)
+      
+      let left = center - 1
+      let right = center + 1
+      
+      while (left >= 0 || right < rowSize) {
+        if (right < rowSize) {
+          order.push(right)
+          right++
+        }
+        if (left >= 0) {
+          order.push(left)
+          left--
+        }
+      }
+      
+      return order
+    }
+
+    // 阵型行数据
+    const formationRows = computed(() => {
+      const config = formationConfigs[formationSize.value]
+      if (!config) return []
+      
+      const members = rankingList.value.slice(0, formationSize.value)
+      const rows = []
+      let memberIndex = 0
+      
+      // 填充顺序：从后排到前排（layout顺序）
+      // 但显示时前排在最下面，所以rows数组要倒过来
+      const tempRows = []
+      
+      for (let i = 0; i < config.layout.length; i++) {
+        const rowSize = config.layout[i]
+        const row = new Array(rowSize).fill(null)
+        const order = getRowOrder(rowSize)
+        
+        // 按照从中间向两边的顺序填充
+        for (const pos of order) {
+          if (memberIndex < members.length) {
+            row[pos] = members[memberIndex]
+            memberIndex++
+          }
+        }
+        
+        tempRows.push(row)
+      }
+      
+      // 倒序排列：后排在上，前排在下
+      return tempRows.reverse()
     })
 
-    const formationMembers = computed(() => {
-      return rankingList.value.slice(0, formationCount.value)
-    })
+    // 获取槽位编号（根据显示顺序）
+    function getSlotNumber(rowIndex, slotIndex) {
+      const config = formationConfigs[formationSize.value]
+      // display 是从后排到前排的显示顺序
+      let num = 1
+      for (let i = 0; i < rowIndex; i++) {
+        num += config.display[i]
+      }
+      return num + slotIndex
+    }
 
     // 获取显示名称：英文用nameEn，中日用name
     function getDisplayName(member) {
@@ -150,8 +239,22 @@ export default {
       return member.name
     }
 
+    // 获取期生显示：英文用 Xth Gen，中日用 X期生
+    function getGenDisplay(gen) {
+      if (!gen) return ''
+      if (currentLocale.value === 'en') {
+        const match = gen.match(/(\d+)/)
+        if (match) {
+          const num = parseInt(match[1])
+          const suffix = num === 1 ? 'st' : num === 2 ? 'nd' : num === 3 ? 'rd' : 'th'
+          return `${num}${suffix} Gen`
+        }
+      }
+      return gen
+    }
+
     onMounted(() => {
-      // �?sessionStorage 获取排序结果
+      // �?sessionStorage 获取排序结果
       const savedResult = sessionStorage.getItem('h46_final_ranking')
       if (savedResult) {
         try {
@@ -164,10 +267,160 @@ export default {
       isReady.value = true
     })
 
-    function downloadImage() {
-      // 使用 html2canvas 生成图片
-      console.log('Downloading image...')
-      alert('图片下载功能开发中...')
+    async function downloadImage() {
+      try {
+        // 下载图片1：TOP5
+        await downloadTop5Image()
+        // 下载图片2：选拔阵容
+        await downloadFormationImage()
+      } catch (error) {
+        console.error('下载图片失败:', error)
+        alert('图片下载失败，请重试')
+      }
+    }
+
+    // 下载TOP5图片
+    async function downloadTop5Image() {
+      const container = document.createElement('div')
+      container.style.cssText = `
+        width: 800px;
+        padding: 40px;
+        background: linear-gradient(135deg, #f5fcff 0%, #e8f8fc 100%);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      `
+
+      const top5 = rankingList.value.slice(0, 5)
+      const title = currentLocale.value === 'en' ? 'Hinatazaka46' : '日向坂46'
+      const subtitle = currentLocale.value === 'en' ? 'Your TOP 5' : '你的TOP5'
+
+      container.innerHTML = `
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="font-size: 48px; color: #58bee4; margin: 0 0 10px 0; font-weight: 700;">${title}</h1>
+          <h2 style="font-size: 36px; color: #1a1a2e; margin: 0; font-weight: 600;">${subtitle}</h2>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+          ${top5.map((member, index) => `
+            <div style="
+              display: flex;
+              align-items: center;
+              padding: 20px;
+              background: rgba(255,255,255,0.9);
+              border-radius: 16px;
+              box-shadow: 0 4px 15px rgba(88,190,228,0.15);
+            ">
+              <span style="
+                font-size: 32px;
+                font-weight: 700;
+                color: ${index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : '#58bee4'};
+                width: 50px;
+              ">${member.rank}</span>
+              <img src="${member.img}" style="
+                width: 70px;
+                height: 70px;
+                border-radius: 50%;
+                object-fit: cover;
+                margin: 0 20px;
+                border: 3px solid #58bee4;
+              ">
+              <div style="flex: 1;">
+                <div style="font-size: 28px; font-weight: 600; color: #1a1a2e;">${getDisplayName(member)}</div>
+                <div style="font-size: 18px; color: rgba(26,26,46,0.6);">${getGenDisplay(member.gen)}</div>
+              </div>
+              <div style="
+                font-size: 32px;
+                font-weight: 700;
+                color: #58bee4;
+                background: rgba(88,190,228,0.1);
+                padding: 10px 25px;
+                border-radius: 30px;
+              ">${calculateScore(member.rank)} pts</div>
+            </div>
+          `).join('')}
+        </div>
+        <div style="text-align: center; margin-top: 30px; color: rgba(26,26,46,0.4); font-size: 16px;">
+          H46 Sorter © 2026
+        </div>
+      `
+
+      document.body.appendChild(container)
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null
+      })
+      document.body.removeChild(container)
+
+      const link = document.createElement('a')
+      link.download = `H46-TOP5-${Date.now()}.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+    }
+
+    // 下载选拔阵容图片
+    async function downloadFormationImage() {
+      const container = document.createElement('div')
+      container.style.cssText = `
+        width: 1000px;
+        padding: 40px;
+        background: linear-gradient(135deg, #f5fcff 0%, #e8f8fc 100%);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      `
+
+      const title = currentLocale.value === 'en' ? 'Hinatazaka46' : '日向坂46'
+      const subtitle = `${formationSize.value}${currentLocale.value === 'en' ? ' Members Formation' : '人选拔阵容'}`
+
+      // 获取阵型数据
+      const config = formationConfigs[formationSize.value]
+      const members = rankingList.value.slice(0, formationSize.value)
+
+      container.innerHTML = `
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="font-size: 48px; color: #58bee4; margin: 0 0 10px 0; font-weight: 700;">${title}</h1>
+          <h2 style="font-size: 36px; color: #1a1a2e; margin: 0; font-weight: 600;">${subtitle}</h2>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+          ${formationRows.value.map((row, rowIndex) => `
+            <div style="display: flex; justify-content: center; gap: 15px;">
+              ${row.map((member, slotIndex) => `
+                <div style="
+                  width: 90px;
+                  height: 90px;
+                  border-radius: 12px;
+                  overflow: hidden;
+                  ${member ? 'box-shadow: 0 4px 12px rgba(88,190,228,0.3);' : 'background: rgba(88,190,228,0.1); border: 2px dashed rgba(88,190,228,0.3);'}
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                ">
+                  ${member ? `
+                    <img src="${member.img}" style="width: 100%; height: 100%; object-fit: cover;">
+                  ` : `
+                    <span style="color: rgba(88,190,228,0.5); font-size: 24px;">${getSlotNumber(rowIndex, slotIndex)}</span>
+                  `}
+                </div>
+              `).join('')}
+            </div>
+          `).join('')}
+        </div>
+        <div style="text-align: center; margin-top: 30px; color: rgba(26,26,46,0.4); font-size: 16px;">
+          H46 Sorter © 2026
+        </div>
+      `
+
+      document.body.appendChild(container)
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null
+      })
+      document.body.removeChild(container)
+
+      const link = document.createElement('a')
+      link.download = `H46-Formation-${formationSize.value}-${Date.now()}.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
     }
 
     function copyLink() {
@@ -177,7 +430,7 @@ export default {
     }
 
     function restart() {
-      // 清除进度和结�?
+      // 清除进度和结�?
       localStorage.removeItem('h46_sort_progress')
       sessionStorage.removeItem('h46_final_ranking')
       router.push('/battle')
@@ -187,11 +440,13 @@ export default {
       isReady,
       hasResult,
       rankingList,
-      activeTab,
-      formationTabs,
-      formationCount,
-      formationMembers,
+      formationSize,
+      formationSizes,
+      formationRows,
+      calculateScore,
+      getSlotNumber,
       getDisplayName,
+      getGenDisplay,
       downloadImage,
       copyLink,
       restart
@@ -208,7 +463,7 @@ export default {
   margin: 0 auto;
 }
 
-/* 加载状�?*/
+/* 加载状�?*/
 .loading-state,
 .no-result-state {
   min-height: 60vh;
@@ -391,8 +646,24 @@ export default {
 }
 
 .member-gen {
-  font-size: 0.8rem;
-  color: rgba(26, 26, 46, 0.5);
+  font-size: 0.75rem;
+  color: #58bee4;
+  background: rgba(88, 190, 228, 0.1);
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  display: inline-block;
+  margin-top: 0.2rem;
+  font-weight: 500;
+}
+
+.member-score {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #58bee4;
+  background: rgba(88, 190, 228, 0.1);
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  margin-right: 0.5rem;
 }
 
 .rank-medal {
@@ -418,29 +689,35 @@ export default {
   color: #1a1a2e;
 }
 
-.formation-tabs {
+.formation-selector {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 1rem;
   margin-bottom: 1.5rem;
 }
 
-.tab-btn {
-  padding: 0.6rem 1.5rem;
-  border: 1px solid rgba(88, 190, 228, 0.2);
-  background: rgba(255, 255, 255, 0.8);
+.formation-selector label {
+  font-size: 0.95rem;
   color: rgba(26, 26, 46, 0.7);
-  border-radius: 50px;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-size: 0.9rem;
 }
 
-.tab-btn:hover,
-.tab-btn.active {
-  background: linear-gradient(135deg, #58bee4 0%, #7dd3f0 100%);
-  border-color: transparent;
-  color: #fff;
+.formation-select {
+  padding: 0.6rem 1rem;
+  border: 1px solid rgba(88, 190, 228, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1a1a2e;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.formation-select:hover,
+.formation-select:focus {
+  border-color: #58bee4;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(88, 190, 228, 0.1);
 }
 
 .formation-preview {
@@ -450,30 +727,22 @@ export default {
   border: 1px solid rgba(88, 190, 228, 0.1);
 }
 
-.formation-grid {
-  display: grid;
+.formation-stage {
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
+  align-items: center;
+}
+
+.formation-row {
+  display: flex;
   justify-content: center;
-}
-
-.formation-senbatsu {
-  grid-template-columns: repeat(4, 1fr);
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.formation-under {
-  grid-template-columns: repeat(5, 1fr);
-  max-width: 500px;
-  margin: 0 auto;
-}
-
-.formation-all {
-  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
 }
 
 .formation-slot {
-  aspect-ratio: 1;
+  width: 60px;
+  height: 60px;
   background: rgba(88, 190, 228, 0.05);
   border-radius: 12px;
   display: flex;
@@ -481,10 +750,17 @@ export default {
   justify-content: center;
   overflow: hidden;
   border: 1px solid rgba(88, 190, 228, 0.1);
+  transition: all 0.3s ease;
 }
 
 .formation-slot.filled {
   border-color: rgba(88, 190, 228, 0.3);
+  box-shadow: 0 4px 12px rgba(88, 190, 228, 0.2);
+}
+
+.formation-slot.filled:hover {
+  transform: scale(1.1);
+  z-index: 10;
 }
 
 .formation-slot img {
@@ -494,8 +770,20 @@ export default {
 }
 
 .slot-number {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: rgba(26, 26, 46, 0.3);
+}
+
+/* 响应式阵型 */
+@media (max-width: 768px) {
+  .formation-slot {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .formation-row {
+    gap: 0.3rem;
+  }
 }
 
 /* 分享区域 */
@@ -538,7 +826,7 @@ export default {
   box-shadow: 0 10px 20px rgba(88, 190, 228, 0.3);
 }
 
-/* 重新开�?*/
+/* 重新开�?*/
 .restart-section {
   text-align: center;
 }
@@ -565,7 +853,7 @@ export default {
   box-shadow: 0 5px 15px rgba(88, 190, 228, 0.2);
 }
 
-/* 响应式设�?*/
+/* 响应式设�?*/
 @media (max-width: 768px) {
   .result-view {
     padding: 1rem;

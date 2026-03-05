@@ -47,6 +47,8 @@
     "copyFailed": "コピーに失敗しました",
     "formation": {
       "title": "選抜フォーメーション",
+      "selectSize": "選抜人数：",
+      "members": "人",
       "senbatsu": "選抜 (16人)",
       "under": "アンダー",
       "all": "全員"

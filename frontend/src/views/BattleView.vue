@@ -32,26 +32,34 @@
 
       <!-- 对战卡片区域 -->
       <div class="battle-arena" v-if="currentBattle">
-        <div class="card-wrapper left" @click="selectLeft">
-          <BattleCard 
-            :name="getDisplayName(currentBattle.left)" 
-            :img="currentBattle.left.img"
-            class="battle-card"
-          />
-          <div class="select-hint">{{ $t('battle.select') }}</div>
-        </div>
+        <div class="battle-arena-inner">
+          <div class="card-wrapper left" @click="selectLeft">
+            <transition name="card-switch" mode="out-in">
+              <BattleCard 
+                :key="currentBattle.leftId"
+                :name="getDisplayName(currentBattle.left)" 
+                :img="currentBattle.left.img"
+                class="battle-card"
+              />
+            </transition>
+            <div class="select-hint">{{ $t('battle.select') }}</div>
+          </div>
 
-        <div class="vs-container">
-          <div class="vs-circle">VS</div>
-        </div>
+          <div class="vs-container">
+            <div class="vs-circle">VS</div>
+          </div>
 
-        <div class="card-wrapper right" @click="selectRight">
-          <BattleCard 
-            :name="getDisplayName(currentBattle.right)" 
-            :img="currentBattle.right.img"
-            class="battle-card"
-          />
-          <div class="select-hint">{{ $t('battle.select') }}</div>
+          <div class="card-wrapper right" @click="selectRight">
+            <transition name="card-switch" mode="out-in">
+              <BattleCard 
+                :key="currentBattle.rightId"
+                :name="getDisplayName(currentBattle.right)" 
+                :img="currentBattle.right.img"
+                class="battle-card"
+              />
+            </transition>
+            <div class="select-hint">{{ $t('battle.select') }}</div>
+          </div>
         </div>
       </div>
 
@@ -327,14 +335,45 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 3rem;
   margin-bottom: 2rem;
+  min-height: 400px;
 }
 
+.battle-arena-inner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3rem;
+  width: 100%;
+  max-width: 900px;
+}
+
+/* 卡片切换动画 */
+.card-switch-enter-active {
+  transition: all 0.3s ease;
+}
+
+.card-switch-leave-active {
+  transition: all 0.2s ease;
+}
+
+.card-switch-enter-from {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.card-switch-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+/* 卡片容器 */
 .card-wrapper {
   position: relative;
   cursor: pointer;
   transition: transform 0.3s ease;
+  flex-shrink: 0;
+  width: 280px;
 }
 
 .card-wrapper:hover {
@@ -452,7 +491,7 @@ export default {
     padding: 1rem;
   }
 
-  .battle-arena {
+  .battle-arena-inner {
     flex-direction: column;
     gap: 1.5rem;
   }

@@ -47,6 +47,8 @@
     "copyFailed": "复制失败",
     "formation": {
       "title": "选拔阵型",
+      "selectSize": "选拔人数：",
+      "members": "人",
       "senbatsu": "选拔 (16人)",
       "under": "Under",
       "all": "全员"

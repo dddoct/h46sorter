@@ -38,7 +38,11 @@ yarn-error.log*
 # Reference files (not for upload)
 memberjp.md
 memberpic.html
-复现步骤分解.md
 prompt1.md
 prompt2.md
 n46-sorter.html
+h46colour.png
+
+# Temp files
+*.tmp
+*.temp

@@ -47,6 +47,8 @@
     "copyFailed": "Copy failed",
     "formation": {
       "title": "Formation",
+      "selectSize": "Formation Size: ",
+      "members": " members",
       "senbatsu": "Senbatsu (16)",
       "under": "Under",
       "all": "All Members"
