@@ -35,14 +35,8 @@ yarn-error.log*
 .cache/
 *.local
 
-# Reference files (not for upload)
-memberjp.md
-memberpic.html
-prompt1.md
-prompt2.md
-n46-sorter.html
-h46colour.png
-download_images.py
+# Local assets (not for upload)
+assets/
 
 # Temp files
 *.tmp
