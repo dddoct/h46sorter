@@ -71,7 +71,7 @@ h46-vue/
 - 成员信息：[日向坂46 Wikipedia](https://ja.wikipedia.org/wiki/日向坂46)
 - 成员图片：[日向坂46 官方网站](https://www.hinatazaka46.com/)
 
-参考 [n46sorter.com](https://n46sorter.com)，为初学开发练手项目。
+此项目参考 [n46sorter.com](https://n46sorter.com)，为初学开发练手项目。
 
 ## 算法说明
 

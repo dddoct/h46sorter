@@ -420,6 +420,13 @@ export default {
       isReady.value = true
     })
 
+    // 监听 hasResult 变化，如果没有结果则跳转到首页
+    watch(hasResult, (newVal) => {
+      if (isReady.value && !newVal) {
+        router.push(`/${currentLocale.value}`)
+      }
+    }, { immediate: true })
+
     async function downloadImage() {
       try {
         await downloadTop5Image()
