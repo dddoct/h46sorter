@@ -23,6 +23,22 @@
         <p class="result-subtitle">{{ $t('result.subtitle') }}</p>
       </div>
 
+      <!-- TOP5 图片展示 -->
+      <div class="top5-image-section" ref="top5ImageContainer">
+        <div class="top5-image-wrapper">
+          <div class="top5-title">{{ currentLocale === 'en' ? 'Your TOP 5' : '你的 TOP5' }}</div>
+          <div class="top5-members">
+            <div v-for="member in top5Members" :key="member.id" class="top5-member">
+              <div class="top5-avatar-wrapper">
+                <img :src="member.img" :alt="getDisplayName(member)" class="top5-avatar" />
+                <div class="top5-rank">{{ member.rank }}</div>
+              </div>
+              <span class="top5-name">{{ getDisplayName(member) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 排名展示区域 -->
       <div class="ranking-section" ref="rankingContainer">
         <div class="ranking-header">
@@ -89,12 +105,16 @@
                 @dragend="handleDragEnd"
                 @dragenter.prevent
               >
-                <img 
-                  v-if="member" 
-                  :src="member.img" 
-                  :alt="getDisplayName(member)"
-                  :title="getDisplayName(member)"
-                />
+                <template v-if="member">
+                  <div class="formation-member">
+                    <img 
+                      :src="member.img" 
+                      :alt="getDisplayName(member)"
+                      :title="getDisplayName(member)"
+                    />
+                    <span class="formation-member-name">{{ getDisplayName(member) }}</span>
+                  </div>
+                </template>
                 <span v-else class="slot-number">{{ getSlotNumber(rowIndex, slotIndex) }}</span>
               </div>
             </div>
@@ -194,6 +214,9 @@ export default {
       21: { rows: 3, layout: [6, 7, 8] },
       22: { rows: 3, layout: [6, 8, 8] }
     }
+
+    // TOP5成员
+    const top5Members = computed(() => rankingList.value.slice(0, 5))
 
     // 计算分数
     function calculateScore(rank) {
@@ -558,11 +581,13 @@ export default {
       formationSize,
       formationSizes,
       formationRows,
+      top5Members,
       draggedSlot,
       dragOverSlot,
       selectedSlot,
       showReplaceModal,
       notInFormationMembers,
+      currentLocale,
       calculateScore,
       getSlotNumber,
       getDisplayName,
@@ -660,6 +685,82 @@ export default {
 .result-subtitle {
   font-size: 1.1rem;
   color: rgba(26, 26, 46, 0.6);
+}
+
+/* TOP5 图片区域 */
+.top5-image-section {
+  margin-bottom: 2rem;
+}
+
+.top5-image-wrapper {
+  background: linear-gradient(135deg, #f5fcff 0%, #e8f8fc 100%);
+  border-radius: 20px;
+  padding: 2rem;
+  border: 1px solid rgba(88, 190, 228, 0.2);
+  text-align: center;
+}
+
+.top5-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #58bee4;
+  margin-bottom: 1.5rem;
+}
+
+.top5-members {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.top5-member {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.top5-avatar-wrapper {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.top5-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #58bee4;
+  box-shadow: 0 4px 12px rgba(88, 190, 228, 0.3);
+}
+
+.top5-rank {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #58bee4 0%, #7dd3f0 100%);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+.top5-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ranking-section {
@@ -853,20 +954,19 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .formation-row {
   display: flex;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .formation-slot {
-  width: 70px;
-  height: 70px;
+  width: 80px;
+  min-height: 110px;
   border-radius: 12px;
-  overflow: hidden;
   background: rgba(88, 190, 228, 0.1);
   border: 2px dashed rgba(88, 190, 228, 0.3);
   display: flex;
@@ -874,11 +974,12 @@ export default {
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
+  padding: 0.5rem;
 }
 
 .formation-slot.filled {
   border: 2px solid transparent;
-  box-shadow: 0 4px 12px rgba(88, 190, 228, 0.3);
+  background: transparent;
 }
 
 .formation-slot.selected {
@@ -889,19 +990,38 @@ export default {
 
 .formation-slot.dragging {
   opacity: 0.5;
-  transform: scale(0.95);
 }
 
 .formation-slot.drag-over {
   border-color: #58bee4;
   background: rgba(88, 190, 228, 0.2);
-  transform: scale(1.05);
 }
 
-.formation-slot img {
-  width: 100%;
-  height: 100%;
+.formation-member {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.formation-member img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
   object-fit: cover;
+  border: 3px solid #58bee4;
+  box-shadow: 0 4px 12px rgba(88, 190, 228, 0.3);
+}
+
+.formation-member-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  text-align: center;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .slot-number {
@@ -1069,13 +1189,42 @@ export default {
     padding: 1rem;
   }
 
+  .top5-avatar-wrapper {
+    width: 60px;
+    height: 60px;
+  }
+
+  .top5-name {
+    font-size: 0.75rem;
+    max-width: 60px;
+  }
+
+  .top5-members {
+    gap: 1rem;
+  }
+
   .formation-slot {
+    width: 60px;
+    min-height: 85px;
+    padding: 0.3rem;
+  }
+
+  .formation-member img {
     width: 50px;
     height: 50px;
   }
 
+  .formation-member-name {
+    font-size: 0.65rem;
+    max-width: 50px;
+  }
+
   .formation-preview {
     padding: 1rem;
+  }
+
+  .formation-row {
+    gap: 0.5rem;
   }
 
   .rank-item {
