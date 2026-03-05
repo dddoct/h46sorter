@@ -170,7 +170,7 @@
 
 <script>
 import { ref, computed, onMounted, inject, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import html2canvas from 'html2canvas'
 
@@ -178,6 +178,7 @@ export default {
   name: 'ResultView',
   setup() {
     const router = useRouter()
+    const route = useRoute()
     const { t } = useI18n()
     const currentLocale = inject('currentLocale')
     
@@ -421,7 +422,9 @@ export default {
       
       // 如果没有结果，跳转到首页
       if (!hasResult.value) {
-        router.push(`/${currentLocale.value}`)
+        // 从当前路径获取语言
+        const pathLocale = route.params.locale || 'zh'
+        router.push(`/${pathLocale}`)
       }
     })
 

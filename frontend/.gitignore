@@ -29,6 +29,10 @@ hinatazaka46.html
 member.html
 h46member.md
 n46-sorter.html
+prompt1.md
+prompt2.md
+prompt3.md
+prompt4.md
 
 # Test files
 test-*.js
@@ -37,3 +41,6 @@ test-*.js
 # Temporary files
 *.tmp
 *.temp
+
+
+h46-imcompleted.md
