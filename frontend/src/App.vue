@@ -201,7 +201,7 @@ export default {
   }
 
   .nav {
-    gap: 1rem;
+    gap: 0.5rem;
   }
 
   .logo-text,
@@ -210,7 +210,12 @@ export default {
   }
 
   .lang-switcher {
-    display: none;
+    gap: 0.1rem;
+  }
+
+  .lang-btn {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.75rem;
   }
 }
 </style>
