@@ -42,7 +42,6 @@
                 class="battle-card"
               />
             </transition>
-            <div class="select-hint">{{ $t('battle.select') }}</div>
           </div>
 
           <div class="vs-container">
@@ -58,7 +57,6 @@
                 class="battle-card"
               />
             </transition>
-            <div class="select-hint">{{ $t('battle.select') }}</div>
           </div>
         </div>
       </div>
@@ -75,12 +73,7 @@
         </button>
       </div>
 
-      <!-- 键盘快捷键提示 -->
-      <div class="keyboard-hints">
-        <span class="hint">← {{ $t('battle.left') }}</span>
-        <span class="hint">{{ $t('battle.drawKey') }} {{ $t('battle.draw') }}</span>
-        <span class="hint">{{ $t('battle.right') }} →</span>
-      </div>
+
     </template>
   </div>
 </template>
@@ -134,13 +127,9 @@ export default {
         init(members)
       }
       isReady.value = true
-
-      // 添加键盘事件监听
-      window.addEventListener('keydown', handleKeydown)
     })
 
     onUnmounted(() => {
-      window.removeEventListener('keydown', handleKeydown)
     })
 
     // 监听排序完成
@@ -180,24 +169,7 @@ export default {
       router.push('/result')
     }
 
-    // 键盘事件处理
-    function handleKeydown(e) {
-      if (!currentBattle.value || isComplete.value) return
-      
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault()
-        selectLeft()
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault()
-        selectRight()
-      } else if (e.key === ' ' || e.key === 'Enter') {
-        e.preventDefault()
-        handleDraw()
-      } else if (e.key === 'z' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault()
-        handleUndo()
-      }
-    }
+
 
     return {
       isReady,
@@ -255,7 +227,7 @@ export default {
 
 /* 完成状态 */
 .complete-state {
-  flex: 1;
+  min-height: calc(100vh - 200px);
   display: flex;
   flex-direction: column;
   align-items: center;
