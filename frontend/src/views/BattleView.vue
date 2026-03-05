@@ -487,29 +487,29 @@ export default {
   border: 1px solid rgba(88, 190, 228, 0.1);
 }
 
-/* 响应式设计 */
+/* 响应式设计 - 保持左右布局 */
 @media (max-width: 768px) {
   .battle-view {
     padding: 1rem;
   }
 
   .battle-arena-inner {
-    flex-direction: column;
+    flex-direction: row;
     gap: 1rem;
   }
 
   .card-wrapper {
-    width: 200px;
+    width: 140px;
   }
 
   .vs-container {
-    margin: 0.5rem 0;
+    margin: 0;
   }
 
   .vs-circle {
-    width: 50px;
-    height: 50px;
-    font-size: 1.2rem;
+    width: 45px;
+    height: 45px;
+    font-size: 1rem;
   }
 
   .battle-title {
