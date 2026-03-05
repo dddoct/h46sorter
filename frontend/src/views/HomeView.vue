@@ -8,7 +8,7 @@
       <h2 class="subtitle">{{ $t('home.subtitle') }}</h2>
       <p class="description">{{ $t('home.description') }}</p>
       
-      <router-link to="/battle" class="start-button">
+      <router-link :to="`/${currentLocale}/battle`" class="start-button">
         <span class="button-text">{{ $t('home.startButton') }}</span>
         <span class="button-arrow">→</span>
       </router-link>
@@ -39,8 +39,17 @@
 </template>
 
 <script>
+import { inject } from 'vue'
+
 export default {
-  name: 'HomeView'
+  name: 'HomeView',
+  setup() {
+    const currentLocale = inject('currentLocale')
+    
+    return {
+      currentLocale
+    }
+  }
 }
 </script>
 

@@ -51,7 +51,8 @@
       "members": " members",
       "senbatsu": "Senbatsu (16)",
       "under": "Under",
-      "all": "All Members"
+      "all": "All Members",
+      "hint": "Click to replace, drag to swap positions"
     },
     "share": {
       "title": "Share",

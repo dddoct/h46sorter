@@ -10,7 +10,7 @@
     <div v-else-if="!hasResult" class="no-result-state">
       <h2>{{ $t('result.noResult') }}</h2>
       <p>{{ $t('result.pleaseComplete') }}</p>
-      <router-link to="/battle" class="primary-btn">
+      <router-link :to="`/${currentLocale}/battle`" class="primary-btn">
         {{ $t('result.startSorting') }}
       </router-link>
     </div>
@@ -78,7 +78,7 @@
             </option>
           </select>
         </div>
-        <p class="formation-hint">点击成员可替换，拖拽可交换位置</p>
+        <p class="formation-hint">{{ $t('result.formation.hint') }}</p>
         <div class="formation-preview">
           <div class="formation-stage" :class="'formation-' + formationSize">
             <div 
@@ -571,7 +571,7 @@ export default {
     function restart() {
       localStorage.removeItem('h46_sort_progress')
       sessionStorage.removeItem('h46_final_ranking')
-      router.push('/battle')
+      router.push(`/${currentLocale.value}/battle`)
     }
 
     return {
@@ -877,11 +877,13 @@ export default {
   font-size: 0.75rem;
   color: #58bee4;
   background: rgba(88, 190, 228, 0.1);
-  padding: 0.2rem 0.6rem;
+  padding: 0.2rem 0;
   border-radius: 12px;
   display: inline-block;
   margin-top: 0.2rem;
   font-weight: 500;
+  width: 3.615rem;
+  text-align: center;
 }
 
 .member-score {

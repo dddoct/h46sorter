@@ -1,12 +1,12 @@
 <template>
   <div class="app">
     <header class="header">
-      <router-link to="/" class="logo">
+      <router-link :to="`/${currentLocale}`" class="logo">
         <span class="logo-text">H46</span>
         <span class="logo-suffix">Sorter</span>
       </router-link>
       <nav class="nav">
-        <router-link to="/" class="nav-link" exact-active-class="active">{{ $t('nav.home') }}</router-link>
+        <router-link :to="`/${currentLocale}`" class="nav-link" exact-active-class="active">{{ $t('nav.home') }}</router-link>
         <div class="lang-switcher">
           <button 
             v-for="lang in languages" 
@@ -31,12 +31,15 @@
 
 <script>
 import { useI18n } from 'vue-i18n'
-import { ref, provide } from 'vue'
+import { ref, provide, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 export default {
   name: 'App',
   setup() {
     const { locale } = useI18n()
+    const route = useRoute()
+    const router = useRouter()
     const currentLocale = ref(locale.value)
 
     const languages = [
@@ -45,9 +48,31 @@ export default {
       { code: 'en', label: 'En' }
     ]
 
+    // 从路径中获取当前语言
+    const getLocaleFromPath = (path) => {
+      const match = path.match(/^\/(zh|ja|en)(\/|$)/)
+      return match ? match[1] : 'zh'
+    }
+
+    // 监听路由变化，同步语言
+    watch(() => route.path, (newPath) => {
+      const pathLocale = getLocaleFromPath(newPath)
+      if (pathLocale && pathLocale !== currentLocale.value) {
+        currentLocale.value = pathLocale
+        locale.value = pathLocale
+      }
+    }, { immediate: true })
+
     const changeLocale = (code) => {
+      if (code === currentLocale.value) return
+      
       locale.value = code
       currentLocale.value = code
+      
+      // 获取当前路径并替换语言前缀
+      const currentPath = route.path
+      const newPath = currentPath.replace(/^\/(zh|ja|en)/, `/${code}`)
+      router.push(newPath)
     }
 
     // 提供当前语言给子组件
@@ -149,6 +174,7 @@ export default {
   background: rgba(88, 190, 228, 0.05);
   padding: 0.25rem;
   border-radius: 8px;
+  border: 1px solid rgba(88, 190, 228, 0.1);
 }
 
 .lang-btn {
@@ -157,10 +183,10 @@ export default {
   background: transparent;
   color: rgba(26, 26, 46, 0.6);
   font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.3s;
-  font-weight: 500;
 }
 
 .lang-btn:hover {
@@ -174,24 +200,20 @@ export default {
 }
 
 .main {
-  padding: 0;
-  min-height: calc(100vh - 70px);
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 
 /* 页面切换动画 */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity 0.3s ease;
 }
 
-.fade-enter-from {
-  opacity: 0;
-  transform: translateY(10px);
-}
-
+.fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
 }
 
 /* 响应式设计 */

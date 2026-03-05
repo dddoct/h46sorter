@@ -51,7 +51,8 @@
       "members": "人",
       "senbatsu": "选拔 (16人)",
       "under": "Under",
-      "all": "全员"
+      "all": "全员",
+      "hint": "点击成员可替换，拖拽可交换位置"
     },
     "share": {
       "title": "分享",

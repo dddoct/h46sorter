@@ -166,7 +166,7 @@ export default {
 
     // 跳转到结果页
     function goToResult() {
-      router.push('/result')
+      router.push(`/${currentLocale.value}/result`)
     }
 
 
