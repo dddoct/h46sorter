@@ -1,12 +1,12 @@
 <template>
   <div class="result-view">
-    <!-- 加载状�?-->
+    <!-- 加载状态 -->
     <div v-if="!isReady" class="loading-state">
       <div class="loading-spinner"></div>
       <p>{{ $t('common.loading') }}</p>
     </div>
 
-    <!-- 无结果状�?-->
+    <!-- 无结果状态 -->
     <div v-else-if="!hasResult" class="no-result-state">
       <h2>{{ $t('result.noResult') }}</h2>
       <p>{{ $t('result.pleaseComplete') }}</p>
@@ -34,7 +34,7 @@
             v-for="(member, index) in rankingList" 
             :key="member.id"
             class="rank-item"
-            :class="{ 'top3': member.rank <= 3, 'tied': member.tied }"
+            :class="{ 'top3': member.rank <= 3, 'tied': member.tied, 'in-formation': isInFormation(member) }"
             :style="{ animationDelay: index * 0.05 + 's' }"
           >
             <span class="rank-number" :class="'rank-' + member.rank">{{ member.rank }}</span>
@@ -51,7 +51,7 @@
         </div>
       </div>
 
-      <!-- 阵型切换 -->
+      <!-- 阵型区域 -->
       <div class="formation-section">
         <h3 class="section-title">{{ $t('result.formation.title') }}</h3>
         <div class="formation-selector">
@@ -62,6 +62,7 @@
             </option>
           </select>
         </div>
+        <p class="formation-hint">点击成员可替换，拖拽可交换位置</p>
         <div class="formation-preview">
           <div class="formation-stage" :class="'formation-' + formationSize">
             <div 
@@ -74,7 +75,19 @@
                 v-for="(member, slotIndex) in row" 
                 :key="slotIndex"
                 class="formation-slot"
-                :class="{ filled: member }"
+                :class="{ 
+                  filled: member, 
+                  selected: selectedSlot && selectedSlot.row === rowIndex && selectedSlot.slot === slotIndex,
+                  dragging: draggedSlot && draggedSlot.row === rowIndex && draggedSlot.slot === slotIndex,
+                  'drag-over': dragOverSlot && dragOverSlot.row === rowIndex && dragOverSlot.slot === slotIndex
+                }"
+                draggable="true"
+                @click="handleSlotClick(rowIndex, slotIndex, member)"
+                @dragstart="handleDragStart(rowIndex, slotIndex, member)"
+                @dragover.prevent="handleDragOver(rowIndex, slotIndex)"
+                @drop="handleDrop(rowIndex, slotIndex)"
+                @dragend="handleDragEnd"
+                @dragenter.prevent
               >
                 <img 
                   v-if="member" 
@@ -104,7 +117,7 @@
         </div>
       </div>
 
-      <!-- 重新开�?-->
+      <!-- 重新开始 -->
       <div class="restart-section">
         <button @click="restart" class="restart-btn">
           <span class="btn-icon">🔄</span>
@@ -112,11 +125,31 @@
         </button>
       </div>
     </template>
+
+    <!-- 替换弹窗 -->
+    <div v-if="showReplaceModal" class="modal-overlay" @click="closeModal">
+      <div class="modal-content" @click.stop>
+        <h3>选择替换成员</h3>
+        <p class="modal-subtitle">点击成员进行替换</p>
+        <div class="modal-members">
+          <div 
+            v-for="member in notInFormationMembers" 
+            :key="member.id"
+            class="modal-member"
+            @click="replaceMember(member)"
+          >
+            <img :src="member.img" :alt="getDisplayName(member)" />
+            <span>{{ getDisplayName(member) }}</span>
+          </div>
+        </div>
+        <button class="modal-close" @click="closeModal">取消</button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import { ref, computed, onMounted, inject } from 'vue'
+import { ref, computed, onMounted, inject, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import html2canvas from 'html2canvas'
@@ -132,105 +165,112 @@ export default {
     const hasResult = ref(false)
     const rankingList = ref([])
     const formationSize = ref(16)
+    
+    // 拖放相关状态
+    const draggedSlot = ref(null)
+    const dragOverSlot = ref(null)
+    const selectedSlot = ref(null)
+    const showReplaceModal = ref(false)
 
-    // 阵型人数选项：10-22人
+    // 阵型数据（响应式）
+    const formationData = ref([])
+
+    // 阵型人数选项
     const formationSizes = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
 
-    // 计算分数：底分50，最高分100，线性递减
+    // 阵型配置
+    const formationConfigs = {
+      10: { rows: 2, layout: [3, 7] },
+      11: { rows: 2, layout: [5, 6] },
+      12: { rows: 2, layout: [5, 7] },
+      13: { rows: 3, layout: [3, 4, 6] },
+      14: { rows: 3, layout: [3, 5, 6] },
+      15: { rows: 3, layout: [3, 6, 6] },
+      16: { rows: 3, layout: [3, 6, 7] },
+      17: { rows: 3, layout: [5, 6, 6] },
+      18: { rows: 3, layout: [5, 6, 7] },
+      19: { rows: 3, layout: [5, 6, 8] },
+      20: { rows: 3, layout: [6, 7, 7] },
+      21: { rows: 3, layout: [6, 7, 8] },
+      22: { rows: 3, layout: [6, 8, 8] }
+    }
+
+    // 计算分数
     function calculateScore(rank) {
       const totalMembers = rankingList.value.length
       if (totalMembers <= 1) return 100
-      // 线性插值：第1名100分，最后一名50分
       const score = 100 - ((rank - 1) / (totalMembers - 1)) * 50
       return Math.round(score)
     }
 
-    // 阵型排布配置（从后排到前排显示，但填充时从前往后）
-    // layout: [前排, 中间, 后排]（从舞台前到后）
-    const formationConfigs = {
-      10: { rows: 2, layout: [3, 7], display: [7, 3] },           // 前排3，后排7
-      11: { rows: 2, layout: [5, 6], display: [6, 5] },           // 前排5，后排6
-      12: { rows: 2, layout: [5, 7], display: [7, 5] },           // 前排5，后排7
-      13: { rows: 3, layout: [3, 4, 6], display: [6, 4, 3] },     // 前排3，中间4，后排6
-      14: { rows: 3, layout: [3, 5, 6], display: [6, 5, 3] },     // 前排3，中间5，后排6
-      15: { rows: 3, layout: [3, 6, 6], display: [6, 6, 3] },     // 前排3，中间6，后排6
-      16: { rows: 3, layout: [3, 6, 7], display: [7, 6, 3] },     // 前排3，中间6，后排7
-      17: { rows: 3, layout: [5, 6, 6], display: [6, 6, 5] },     // 前排5，中间6，后排6
-      18: { rows: 3, layout: [5, 6, 7], display: [7, 6, 5] },     // 前排5，中间6，后排7
-      19: { rows: 3, layout: [5, 6, 8], display: [8, 6, 5] },     // 前排5，中间6，后排8
-      20: { rows: 3, layout: [6, 7, 7], display: [7, 7, 6] },     // 前排6，中间7，后排7
-      21: { rows: 3, layout: [6, 7, 8], display: [8, 7, 6] },     // 前排6，中间7，后排8
-      22: { rows: 3, layout: [6, 8, 8], display: [8, 8, 6] }      // 前排6，中间8，后排8
-    }
-
-    // 计算每排的排列顺序（从中间向两边）
+    // 计算每排顺序
     function getRowOrder(rowSize) {
       const order = []
       const center = Math.floor((rowSize - 1) / 2)
       order.push(center)
-      
       let left = center - 1
       let right = center + 1
-      
       while (left >= 0 || right < rowSize) {
-        if (right < rowSize) {
-          order.push(right)
-          right++
-        }
-        if (left >= 0) {
-          order.push(left)
-          left--
-        }
+        if (right < rowSize) { order.push(right); right++ }
+        if (left >= 0) { order.push(left); left-- }
       }
-      
       return order
     }
 
-    // 阵型行数据
-    const formationRows = computed(() => {
+    // 初始化阵型数据
+    function initFormationData() {
       const config = formationConfigs[formationSize.value]
-      if (!config) return []
+      if (!config) return
       
       const members = rankingList.value.slice(0, formationSize.value)
       const rows = []
       let memberIndex = 0
       
-      // 填充顺序：从后排到前排（layout顺序）
-      // 但显示时前排在最下面，所以rows数组要倒过来
-      const tempRows = []
-      
       for (let i = 0; i < config.layout.length; i++) {
         const rowSize = config.layout[i]
         const row = new Array(rowSize).fill(null)
         const order = getRowOrder(rowSize)
-        
-        // 按照从中间向两边的顺序填充
         for (const pos of order) {
           if (memberIndex < members.length) {
             row[pos] = members[memberIndex]
             memberIndex++
           }
         }
-        
-        tempRows.push(row)
+        rows.push(row)
       }
-      
-      // 倒序排列：后排在上，前排在下
-      return tempRows.reverse()
+      formationData.value = rows.reverse()
+    }
+
+    // 阵型行数据
+    const formationRows = computed(() => formationData.value)
+
+    // 不在阵型中的成员
+    const notInFormationMembers = computed(() => {
+      const inFormationIds = new Set()
+      for (const row of formationData.value) {
+        for (const slot of row) {
+          if (slot) inFormationIds.add(slot.id)
+        }
+      }
+      return rankingList.value.filter(m => !inFormationIds.has(m.id))
     })
 
-    // 获取槽位编号（根据显示顺序）
+    // 监听阵型大小变化
+    watch(formationSize, () => {
+      initFormationData()
+    })
+
+    // 获取槽位编号
     function getSlotNumber(rowIndex, slotIndex) {
       const config = formationConfigs[formationSize.value]
-      // display 是从后排到前排的显示顺序
       let num = 1
       for (let i = 0; i < rowIndex; i++) {
-        num += config.display[i]
+        num += config.layout[config.layout.length - 1 - i]
       }
       return num + slotIndex
     }
 
-    // 获取显示名称：英文用nameEn，中日用name
+    // 获取显示名称
     function getDisplayName(member) {
       if (!member) return ''
       if (currentLocale.value === 'en' && member.nameEn) {
@@ -239,7 +279,7 @@ export default {
       return member.name
     }
 
-    // 获取期生显示：英文用 Xth Gen，中日用 X期生
+    // 获取期生显示
     function getGenDisplay(gen) {
       if (!gen) return ''
       if (currentLocale.value === 'en') {
@@ -253,13 +293,97 @@ export default {
       return gen
     }
 
+    // 检查成员是否在阵型中
+    function isInFormation(member) {
+      for (const row of formationData.value) {
+        for (const slot of row) {
+          if (slot && slot.id === member.id) return true
+        }
+      }
+      return false
+    }
+
+    // 点击槽位
+    function handleSlotClick(rowIndex, slotIndex, member) {
+      if (!member) return
+      selectedSlot.value = { row: rowIndex, slot: slotIndex, member }
+      showReplaceModal.value = true
+    }
+
+    // 关闭弹窗
+    function closeModal() {
+      showReplaceModal.value = false
+      selectedSlot.value = null
+    }
+
+    // 替换成员
+    function replaceMember(newMember) {
+      if (!selectedSlot.value) return
+      
+      const { row, slot } = selectedSlot.value
+      
+      // 找到新成员当前位置（如果在阵型中）
+      for (let r = 0; r < formationData.value.length; r++) {
+        for (let s = 0; s < formationData.value[r].length; s++) {
+          if (formationData.value[r][s] && formationData.value[r][s].id === newMember.id) {
+            // 交换
+            const temp = formationData.value[r][s]
+            formationData.value[r][s] = formationData.value[row][slot]
+            formationData.value[row][slot] = temp
+            formationData.value = [...formationData.value]
+            closeModal()
+            return
+          }
+        }
+      }
+      
+      // 新成员不在阵型中，直接替换
+      formationData.value[row][slot] = newMember
+      formationData.value = [...formationData.value]
+      closeModal()
+    }
+
+    // 拖放处理
+    function handleDragStart(rowIndex, slotIndex, member) {
+      if (!member) return
+      draggedSlot.value = { row: rowIndex, slot: slotIndex, member }
+    }
+
+    function handleDragOver(rowIndex, slotIndex) {
+      dragOverSlot.value = { row: rowIndex, slot: slotIndex }
+    }
+
+    function handleDrop(rowIndex, slotIndex) {
+      if (!draggedSlot.value) return
+      
+      const fromRow = draggedSlot.value.row
+      const fromSlot = draggedSlot.value.slot
+      const toRow = rowIndex
+      const toSlot = slotIndex
+      
+      // 交换成员
+      const temp = formationData.value[toRow][toSlot]
+      formationData.value[toRow][toSlot] = formationData.value[fromRow][fromSlot]
+      formationData.value[fromRow][fromSlot] = temp
+      
+      formationData.value = [...formationData.value]
+      
+      dragOverSlot.value = null
+      draggedSlot.value = null
+    }
+
+    function handleDragEnd() {
+      draggedSlot.value = null
+      dragOverSlot.value = null
+    }
+
     onMounted(() => {
-      // �?sessionStorage 获取排序结果
       const savedResult = sessionStorage.getItem('h46_final_ranking')
       if (savedResult) {
         try {
           rankingList.value = JSON.parse(savedResult)
           hasResult.value = true
+          initFormationData()
         } catch (e) {
           console.error('Failed to parse ranking result:', e)
         }
@@ -269,9 +393,7 @@ export default {
 
     async function downloadImage() {
       try {
-        // 下载图片1：TOP5
         await downloadTop5Image()
-        // 下载图片2：选拔阵容
         await downloadFormationImage()
       } catch (error) {
         console.error('下载图片失败:', error)
@@ -279,7 +401,6 @@ export default {
       }
     }
 
-    // 下载TOP5图片
     async function downloadTop5Image() {
       const container = document.createElement('div')
       container.style.cssText = `
@@ -357,7 +478,6 @@ export default {
       link.click()
     }
 
-    // 下载选拔阵容图片
     async function downloadFormationImage() {
       const container = document.createElement('div')
       container.style.cssText = `
@@ -369,10 +489,6 @@ export default {
 
       const title = currentLocale.value === 'en' ? 'Hinatazaka46' : '日向坂46'
       const subtitle = `${formationSize.value}${currentLocale.value === 'en' ? ' Members Formation' : '人选拔阵容'}`
-
-      // 获取阵型数据
-      const config = formationConfigs[formationSize.value]
-      const members = rankingList.value.slice(0, formationSize.value)
 
       container.innerHTML = `
         <div style="text-align: center; margin-bottom: 30px;">
@@ -430,7 +546,6 @@ export default {
     }
 
     function restart() {
-      // 清除进度和结�?
       localStorage.removeItem('h46_sort_progress')
       sessionStorage.removeItem('h46_final_ranking')
       router.push('/battle')
@@ -443,10 +558,23 @@ export default {
       formationSize,
       formationSizes,
       formationRows,
+      draggedSlot,
+      dragOverSlot,
+      selectedSlot,
+      showReplaceModal,
+      notInFormationMembers,
       calculateScore,
       getSlotNumber,
       getDisplayName,
       getGenDisplay,
+      isInFormation,
+      handleSlotClick,
+      closeModal,
+      replaceMember,
+      handleDragStart,
+      handleDragOver,
+      handleDrop,
+      handleDragEnd,
       downloadImage,
       copyLink,
       restart
@@ -463,7 +591,6 @@ export default {
   margin: 0 auto;
 }
 
-/* 加载状�?*/
 .loading-state,
 .no-result-state {
   min-height: 60vh;
@@ -515,7 +642,6 @@ export default {
   box-shadow: 0 10px 30px rgba(88, 190, 228, 0.4);
 }
 
-/* 结果标题 */
 .result-header {
   text-align: center;
   margin-bottom: 2rem;
@@ -536,14 +662,12 @@ export default {
   color: rgba(26, 26, 46, 0.6);
 }
 
-/* 排名区域 */
 .ranking-section {
   background: rgba(255, 255, 255, 0.8);
   border-radius: 20px;
   padding: 1.5rem;
   margin-bottom: 2rem;
   border: 1px solid rgba(88, 190, 228, 0.1);
-  box-shadow: 0 4px 20px rgba(88, 190, 228, 0.05);
 }
 
 .ranking-header {
@@ -590,13 +714,14 @@ export default {
   transform: translateX(5px);
 }
 
+.rank-item.in-formation {
+  background: rgba(88, 190, 228, 0.12);
+  border: 1px solid rgba(88, 190, 228, 0.3);
+}
+
 .rank-item.top3 {
   background: rgba(88, 190, 228, 0.08);
   border: 1px solid rgba(88, 190, 228, 0.2);
-}
-
-.rank-item.tied {
-  border-left: 3px solid rgba(255, 215, 0, 0.5);
 }
 
 .rank-number {
@@ -608,7 +733,6 @@ export default {
 
 .rank-number.rank-1 {
   color: #FFD700;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
 .rank-number.rank-2 {
@@ -670,23 +794,16 @@ export default {
   font-size: 1.5rem;
 }
 
-.tie-badge {
-  font-size: 1rem;
-  color: rgba(255, 215, 0, 0.8);
-  font-weight: 700;
-  margin-left: 0.5rem;
-}
-
-/* 阵型区域 */
 .formation-section {
   margin-bottom: 2rem;
 }
 
 .section-title {
-  font-size: 1.2rem;
-  text-align: center;
-  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  font-weight: 600;
   color: #1a1a2e;
+  margin-bottom: 1rem;
+  text-align: center;
 }
 
 .formation-selector {
@@ -694,73 +811,91 @@ export default {
   justify-content: center;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .formation-selector label {
-  font-size: 0.95rem;
   color: rgba(26, 26, 46, 0.7);
+  font-weight: 500;
 }
 
 .formation-select {
-  padding: 0.6rem 1rem;
-  border: 1px solid rgba(88, 190, 228, 0.3);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.9);
+  padding: 0.5rem 1rem;
+  border: 2px solid rgba(88, 190, 228, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.8);
   color: #1a1a2e;
-  font-size: 0.95rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s;
 }
 
-.formation-select:hover,
 .formation-select:focus {
-  border-color: #58bee4;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(88, 190, 228, 0.1);
+  border-color: #58bee4;
+}
+
+.formation-hint {
+  text-align: center;
+  color: rgba(26, 26, 46, 0.5);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
 }
 
 .formation-preview {
   background: rgba(255, 255, 255, 0.8);
-  border-radius: 16px;
-  padding: 1.5rem;
+  border-radius: 20px;
+  padding: 2rem;
   border: 1px solid rgba(88, 190, 228, 0.1);
 }
 
 .formation-stage {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
   align-items: center;
+  gap: 1rem;
 }
 
 .formation-row {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .formation-slot {
-  width: 60px;
-  height: 60px;
-  background: rgba(88, 190, 228, 0.05);
+  width: 70px;
+  height: 70px;
   border-radius: 12px;
+  overflow: hidden;
+  background: rgba(88, 190, 228, 0.1);
+  border: 2px dashed rgba(88, 190, 228, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  border: 1px solid rgba(88, 190, 228, 0.1);
+  cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .formation-slot.filled {
-  border-color: rgba(88, 190, 228, 0.3);
-  box-shadow: 0 4px 12px rgba(88, 190, 228, 0.2);
+  border: 2px solid transparent;
+  box-shadow: 0 4px 12px rgba(88, 190, 228, 0.3);
 }
 
-.formation-slot.filled:hover {
-  transform: scale(1.1);
-  z-index: 10;
+.formation-slot.selected {
+  border-color: #58bee4;
+  background: rgba(88, 190, 228, 0.2);
+  transform: scale(1.05);
+}
+
+.formation-slot.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.formation-slot.drag-over {
+  border-color: #58bee4;
+  background: rgba(88, 190, 228, 0.2);
+  transform: scale(1.05);
 }
 
 .formation-slot img {
@@ -770,23 +905,11 @@ export default {
 }
 
 .slot-number {
-  font-size: 0.85rem;
-  color: rgba(26, 26, 46, 0.3);
+  color: rgba(88, 190, 228, 0.5);
+  font-size: 1.2rem;
+  font-weight: 600;
 }
 
-/* 响应式阵型 */
-@media (max-width: 768px) {
-  .formation-slot {
-    width: 45px;
-    height: 45px;
-  }
-  
-  .formation-row {
-    gap: 0.3rem;
-  }
-}
-
-/* 分享区域 */
 .share-section {
   margin-bottom: 2rem;
 }
@@ -795,17 +918,17 @@ export default {
   display: flex;
   justify-content: center;
   gap: 1rem;
-  flex-wrap: wrap;
 }
 
 .share-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.9rem 2rem;
+  padding: 0.875rem 1.5rem;
   border-radius: 50px;
   border: none;
   font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -816,83 +939,161 @@ export default {
 }
 
 .share-btn.secondary {
-  background: rgba(255, 255, 255, 0.8);
-  color: #1a1a2e;
-  border: 1px solid rgba(88, 190, 228, 0.2);
+  background: rgba(88, 190, 228, 0.1);
+  color: #58bee4;
 }
 
 .share-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(88, 190, 228, 0.3);
+  box-shadow: 0 5px 15px rgba(88, 190, 228, 0.3);
 }
 
-/* 重新开�?*/
 .restart-section {
   text-align: center;
+  padding-bottom: 2rem;
 }
 
 .restart-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 1rem 2.5rem;
-  background: rgba(255, 255, 255, 0.8);
-  color: rgba(26, 26, 46, 0.8);
-  text-decoration: none;
+  padding: 0.875rem 2rem;
+  background: rgba(88, 190, 228, 0.1);
+  border: 2px solid rgba(88, 190, 228, 0.2);
   border-radius: 50px;
-  border: 1px solid rgba(88, 190, 228, 0.2);
-  transition: all 0.3s ease;
-  cursor: pointer;
+  color: #58bee4;
   font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .restart-btn:hover {
-  background: rgba(255, 255, 255, 1);
-  border-color: rgba(88, 190, 228, 0.4);
+  background: rgba(88, 190, 228, 0.2);
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(88, 190, 228, 0.2);
 }
 
-/* 响应式设�?*/
+/* 弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-content h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1a1a2e;
+  text-align: center;
+}
+
+.modal-subtitle {
+  text-align: center;
+  color: rgba(26, 26, 46, 0.5);
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.modal-members {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal-member {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 12px;
+  transition: all 0.3s;
+}
+
+.modal-member:hover {
+  background: rgba(88, 190, 228, 0.1);
+  transform: scale(1.05);
+}
+
+.modal-member img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(88, 190, 228, 0.3);
+}
+
+.modal-member span {
+  font-size: 0.75rem;
+  color: #1a1a2e;
+  text-align: center;
+}
+
+.modal-close {
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(88, 190, 228, 0.1);
+  border: none;
+  border-radius: 10px;
+  color: #58bee4;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.modal-close:hover {
+  background: rgba(88, 190, 228, 0.2);
+}
+
 @media (max-width: 768px) {
   .result-view {
     padding: 1rem;
   }
 
-  .result-title {
-    font-size: 1.5rem;
+  .formation-slot {
+    width: 50px;
+    height: 50px;
   }
 
-  .ranking-section {
+  .formation-preview {
     padding: 1rem;
   }
 
+  .rank-item {
+    padding: 0.5rem;
+  }
+
   .member-avatar {
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
   }
 
-  .formation-senbatsu {
-    grid-template-columns: repeat(4, 1fr);
+  .modal-members {
+    grid-template-columns: repeat(3, 1fr);
   }
 
-  .formation-under {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  .formation-all {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  .share-buttons {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .share-btn {
-    width: 100%;
-    max-width: 280px;
-    justify-content: center;
+  .modal-member img {
+    width: 50px;
+    height: 50px;
   }
 }
 </style>
