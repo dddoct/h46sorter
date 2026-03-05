@@ -734,6 +734,10 @@ export default {
   object-fit: cover;
   border: 3px solid #58bee4;
   box-shadow: 0 4px 12px rgba(88, 190, 228, 0.3);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  pointer-events: none;
 }
 
 .top5-rank {
@@ -882,11 +886,11 @@ export default {
 }
 
 .member-score {
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: #58bee4;
   background: rgba(88, 190, 228, 0.1);
-  padding: 0.3rem 0.8rem;
+  padding: 0.25rem 0.6rem;
   border-radius: 20px;
   margin-right: 0.5rem;
 }
@@ -961,6 +965,7 @@ export default {
   display: flex;
   justify-content: center;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .formation-slot {
@@ -975,6 +980,9 @@ export default {
   cursor: pointer;
   transition: all 0.3s ease;
   padding: 0.5rem;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .formation-slot.filled {
@@ -1011,6 +1019,10 @@ export default {
   object-fit: cover;
   border: 3px solid #58bee4;
   box-shadow: 0 4px 12px rgba(88, 190, 228, 0.3);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  pointer-events: none;
 }
 
 .formation-member-name {
@@ -1190,45 +1202,64 @@ export default {
   }
 
   .top5-avatar-wrapper {
-    width: 60px;
-    height: 60px;
+    width: 55px;
+    height: 55px;
   }
 
   .top5-name {
-    font-size: 0.75rem;
-    max-width: 60px;
+    font-size: 0.7rem;
+    max-width: 55px;
   }
 
   .top5-members {
-    gap: 1rem;
+    gap: 0.75rem;
+  }
+
+  .top5-rank {
+    width: 22px;
+    height: 22px;
+    font-size: 0.75rem;
   }
 
   .formation-slot {
-    width: 60px;
-    min-height: 85px;
-    padding: 0.3rem;
+    width: 55px;
+    min-height: 75px;
+    padding: 0.25rem;
   }
 
   .formation-member img {
-    width: 50px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
+    border-width: 2px;
   }
 
   .formation-member-name {
-    font-size: 0.65rem;
-    max-width: 50px;
+    font-size: 0.6rem;
+    max-width: 45px;
   }
 
   .formation-preview {
-    padding: 1rem;
+    padding: 0.75rem;
+    overflow-x: auto;
+  }
+
+  .formation-stage {
+    gap: 0.75rem;
+    min-width: min-content;
   }
 
   .formation-row {
-    gap: 0.5rem;
+    gap: 0.4rem;
+    flex-wrap: nowrap;
   }
 
   .rank-item {
     padding: 0.5rem;
+  }
+
+  .member-score {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
   }
 
   .member-avatar {
@@ -1241,8 +1272,8 @@ export default {
   }
 
   .modal-member img {
-    width: 50px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
   }
 }
 </style>

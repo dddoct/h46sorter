@@ -299,7 +299,7 @@ export default {
   text-align: center;
   font-size: 1.5rem;
   color: rgba(26, 26, 46, 0.8);
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   font-weight: 500;
 }
 
@@ -309,7 +309,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   min-height: 400px;
 }
 
@@ -465,9 +465,19 @@ export default {
     padding: 1rem;
   }
 
+  .battle-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .battle-arena {
+    margin-bottom: 0.5rem;
+    min-height: auto;
+  }
+
   .battle-arena-inner {
     flex-direction: row;
-    gap: 1rem;
+    gap: 0.5rem;
   }
 
   .card-wrapper {
@@ -484,8 +494,14 @@ export default {
     font-size: 1rem;
   }
 
-  .battle-title {
-    font-size: 1.2rem;
+  .action-buttons {
+    margin-bottom: 1rem;
+    gap: 0.75rem;
+  }
+
+  .action-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
   }
 
   .select-hint {
