@@ -737,7 +737,6 @@ export default {
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
-  pointer-events: none;
 }
 
 .top5-rank {
@@ -1022,7 +1021,6 @@ export default {
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
-  pointer-events: none;
 }
 
 .formation-member-name {
