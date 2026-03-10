@@ -2,7 +2,7 @@
   <div class="home-view">
     <div class="hero-section">
       <div class="logo-container">
-        <div class="logo-icon">H46</div>
+        <img src="/h46cover.png" alt="H46" class="logo-icon" />
         <h1 class="main-title">{{ $t('home.welcome') }}</h1>
       </div>
       <h2 class="subtitle">{{ $t('home.subtitle') }}</h2>
@@ -76,16 +76,11 @@ export default {
 }
 
 .logo-icon {
-  width: 100px;
-  height: 100px;
-  background: linear-gradient(135deg, #58bee4 0%, #7dd3f0 100%);
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
   border-radius: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #fff;
+  display: block;
   margin: 0 auto 1.5rem;
   box-shadow: 0 20px 40px rgba(88, 190, 228, 0.3);
 }
